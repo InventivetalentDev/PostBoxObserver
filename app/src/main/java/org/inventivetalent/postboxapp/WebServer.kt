@@ -14,20 +14,13 @@ class WebServer(port:Int) : NanoHTTPD(port) {
         if (session == null) return super.serve(session)
         val uri = session.uri
 
-        if ("/" == uri) {
-            return newFixedLengthResponse("Hello World!")
-        }
-        if ("/info" == uri) {
-            val json = JSONObject()
-            json.put("time", System.currentTimeMillis())
+        if ("/"==uri || "/info" == uri) {
             val proximity = runBlocking {
-               return@runBlocking MainActivity.instance?.dataRepository?.get("proximity")
+                return@runBlocking MainActivity.instance?.dataRepository?.get("proximity")
             }
             val proximityTime = runBlocking {
                 return@runBlocking MainActivity.instance?.dataRepository?.get("proximityTime")
             }
-            json.put("proximity", proximity?.toFloatOrNull())
-            json.put("proximityTime",proximityTime?.toLongOrNull())
 
             val batteryStatus: Intent? =
                 IntentFilter(Intent.ACTION_BATTERY_CHANGED).let { ifilter ->
@@ -44,6 +37,15 @@ class WebServer(port:Int) : NanoHTTPD(port) {
                 val scale: Int = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
                 level * 100 / scale.toFloat()
             }
+
+            if ("/" == uri) {
+                return newFixedLengthResponse("Hello World!")
+            }
+
+            val json = JSONObject()
+            json.put("time", System.currentTimeMillis())
+            json.put("proximity", proximity?.toFloatOrNull())
+            json.put("proximityTime",proximityTime?.toLongOrNull())
             json.put("charging", isCharging)
             json.put("battery", batteryPct)
 
