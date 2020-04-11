@@ -10,10 +10,16 @@ import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
+import org.inventivetalent.postboxapp.database.AppDatabase
+import org.inventivetalent.postboxapp.database.repositories.DataRepository
+import org.inventivetalent.postboxapp.database.repositories.EmailRepository
 
 
-
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
     companion object {
         var instance: MainActivity? = null
@@ -23,7 +29,10 @@ class MainActivity : AppCompatActivity() {
 
     val APP_PERMISSION_REQUEST = 45487
 
-    var webServer:WebServer? = null
+    var webServer: WebServer? = null
+
+    var dataRepository: DataRepository? = null
+    var emailRepository: EmailRepository? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,6 +40,10 @@ class MainActivity : AppCompatActivity() {
         Thread.setDefaultUncaughtExceptionHandler(CustomExceptionHandler(this))
 
         instance = this
+
+        val appDatabase = AppDatabase.getInstance(this)
+        dataRepository = DataRepository(appDatabase.dataDao())
+        emailRepository = EmailRepository(appDatabase.emailDao())
 
         val port = 8090
 
@@ -50,8 +63,8 @@ class MainActivity : AppCompatActivity() {
             )
             val msg = "Web Interface running on $ip:$port"
             println(msg)
-            Toast.makeText(this,msg,Toast.LENGTH_LONG).show()
-        } catch (e:Exception) {
+            Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
+        } catch (e: Exception) {
 
         }
 
@@ -85,7 +98,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-        outState.run{
+        outState.run {
             putFloat("proximity", currentProximity)
         }
         super.onSaveInstanceState(outState)
@@ -95,6 +108,17 @@ class MainActivity : AppCompatActivity() {
     fun onProximityChanged(prev: Float, curr: Float) {
         println("onProximityChanged($prev->$curr)")
         currentProximity = curr
+
+        setData("proximity", curr.toString())
+        setData("proximityTime", System.currentTimeMillis().toString())
+    }
+
+
+    fun setData(key: String, value: String) {
+        GlobalScope.launch {
+            println("setData->launch")
+            instance?.let { dataRepository?.set(key, value) }
+        }
     }
 
 }

@@ -14,7 +14,7 @@ import android.os.Bundle
 import android.os.IBinder
 import android.os.PowerManager
 import androidx.core.app.NotificationCompat
-import org.inventivetalent.postboxapp.NotificationHelper.DEFAULT_CHANNEL_ID
+import org.inventivetalent.postboxapp.NotificationHelper.Companion.DEFAULT_CHANNEL_ID
 
 class SensorBackgroundService : Service(), SensorEventListener {
 
@@ -141,7 +141,7 @@ class SensorBackgroundService : Service(), SensorEventListener {
                 wakeLock.acquire(5 * 1000L /*10 minutes*/)
                 wakeLock.release()
 
-                MainActivity.instance!!.onProximityChanged(previousValue, sensorValue)
+                MainActivity.instance?.onProximityChanged(previousValue, sensorValue)
                 previousValue = sensorValue
             }
         }
