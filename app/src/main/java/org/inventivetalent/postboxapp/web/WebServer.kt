@@ -4,11 +4,12 @@ import android.app.ActivityManager
 import android.content.Context.ACTIVITY_SERVICE
 import android.util.Log
 import androidx.annotation.RawRes
+import com.sendgrid.helpers.mail.Mail
+import com.sendgrid.helpers.mail.objects.Content
+import com.sendgrid.helpers.mail.objects.Email
 import fi.iki.elonen.NanoHTTPD
 import kotlinx.coroutines.runBlocking
-import org.inventivetalent.postboxapp.BatteryInfo
-import org.inventivetalent.postboxapp.MainActivity
-import org.inventivetalent.postboxapp.SensorBackgroundService
+import org.inventivetalent.postboxapp.*
 import org.inventivetalent.postboxapp.web.WebAuth.Companion.checkAuth
 import org.inventivetalent.postboxapp.web.WebAuth.Companion.forbidden
 import org.inventivetalent.postboxapp.web.WebAuth.Companion.getUser
@@ -26,7 +27,7 @@ class WebServer(port: Int) : NanoHTTPD(port) {
         val uri = session.uri
         val params = session.parameters
 
-        Log.i("WebServer","${method.name} $uri")
+        Log.i("WebServer", "${method.name} $uri")
         Log.i("WebServer", params.toString())
 
 
@@ -155,6 +156,34 @@ class WebServer(port: Int) : NanoHTTPD(port) {
             return fileResponse(org.inventivetalent.postboxapp.R.raw.passwordchange)
         }
 
+        if ("/settings" == uri) {
+            val a = checkAuth(session)
+            if (a != WebAuth.AuthStatus.OK) {
+                return a.response()
+            }
+
+            if (method == Method.POST) {
+                session.parseBody(null)
+
+                val sendgridkey = params["sendgridkey"]?.get(0)
+
+                runBlocking {
+                    if (sendgridkey != null) {
+                        MainActivity.instance?.setData("SENDGRID_API_KEY", sendgridkey)
+                    }
+                }
+                return redirect("/settings")
+            }
+
+            val format: MutableMap<String, Any?> = HashMap<String, Any?>()
+            val apiKey = runBlocking {
+                return@runBlocking EmailSender.getApiKey()
+            }
+            format["sendgridkey"] = apiKey ?: ""
+
+            return fileResponse(R.raw.settings, format)
+        }
+
         if ("/api/info" == uri) {
             val a = checkAuth(session)
             if (a != WebAuth.AuthStatus.OK) {
@@ -165,6 +194,24 @@ class WebServer(port: Int) : NanoHTTPD(port) {
             val response = newFixedLengthResponse(json.toString())
             response.mimeType = "application/json"
             return response
+        }
+
+        if ("/api/testmail" == uri) {
+            val a = checkAuth(session)
+            if (a != WebAuth.AuthStatus.OK) {
+                return a.response()
+            }
+
+            val emailEntry = runBlocking {
+                return@runBlocking MainActivity.instance?.emailRepository?.getByName("admin")
+            } ?: return notFound()
+
+            val from = Email("no-reply@post.box")
+            val to = Email(emailEntry.address)
+            val content = Content("text/plain", "This is a test email from the PostBox App!")
+            val mail = Mail(from,"Test Email",to,content)
+            EmailSender.sendEmail(mail)
+            return newFixedLengthResponse("Email sent!")
         }
 
         return super.serve(session)
@@ -234,7 +281,7 @@ class WebServer(port: Int) : NanoHTTPD(port) {
     fun getBatteryInfo() = BatteryInfo()
 
     // Based on https://stackoverflow.com/a/5921190/6257838
-    fun isServiceRunning():Boolean {
+    fun isServiceRunning(): Boolean {
         val manager = MainActivity.instance?.getSystemService(ACTIVITY_SERVICE) as ActivityManager?
         for (service in manager!!.getRunningServices(Integer.MAX_VALUE)) {
             if (SensorBackgroundService::class.java.name == service.service.className) {
