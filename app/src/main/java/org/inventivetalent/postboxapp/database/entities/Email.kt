@@ -13,4 +13,10 @@ class Email {
     @ColumnInfo(index = true)
     var address: String? = null
 
+    @ColumnInfo(index = true)
+    var name: String? = null
+
+    @ColumnInfo
+    var pass: String? = null
+
 }

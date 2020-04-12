@@ -5,6 +5,7 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import kotlin.system.exitProcess
 
 class CustomExceptionHandler : Thread.UncaughtExceptionHandler {
@@ -20,6 +21,8 @@ class CustomExceptionHandler : Thread.UncaughtExceptionHandler {
         intent.putExtra("crash", true)
         intent.putExtra("crashTime", System.currentTimeMillis())
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
+
+        Log.e("PostBoxApp", "Uncaught Exception", e)
 
         val pendingIntent = PendingIntent.getActivity(PostBoxApp.instance?.baseContext, 0, intent,PendingIntent.FLAG_ONE_SHOT)
 

@@ -64,7 +64,7 @@ class SensorBackgroundService : Service(), SensorEventListener {
 
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        println("sensor service start command")
+        println("sensor service start command ${System.currentTimeMillis()} ${hashCode()}")
 
         mSensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         mPowerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
@@ -102,8 +102,22 @@ class SensorBackgroundService : Service(), SensorEventListener {
         return null
     }
 
+    override fun onCreate() {
+        super.onCreate()
+
+        println("sensor service onCreate")
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+
+        println("sensor service onDestroy")
+    }
+
     override fun onTaskRemoved(rootIntent: Intent?) {
         super.onTaskRemoved(rootIntent)
+
+        println("sensor service onTaskRemoved")
 
         val intent = Intent(MainActivity.instance, MainActivity::class.java)
         intent.putExtra("kill", true)
@@ -138,7 +152,7 @@ class SensorBackgroundService : Service(), SensorEventListener {
                     PowerManager.SCREEN_BRIGHT_WAKE_LOCK or PowerManager.FULL_WAKE_LOCK or PowerManager.ACQUIRE_CAUSES_WAKEUP,
                     TAG
                 )
-                wakeLock.acquire(5 * 1000L /*10 minutes*/)
+                wakeLock.acquire(5 * 1000L)
                 wakeLock.release()
 
                 MainActivity.instance?.onProximityChanged(previousValue, sensorValue)

@@ -8,18 +8,25 @@ import android.content.Intent
 import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Observer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import org.inventivetalent.postboxapp.database.AppDatabase
+import org.inventivetalent.postboxapp.database.entities.Email
 import org.inventivetalent.postboxapp.database.repositories.DataRepository
 import org.inventivetalent.postboxapp.database.repositories.EmailRepository
+import org.inventivetalent.postboxapp.web.WebAuth
+import org.inventivetalent.postboxapp.web.WebServer
 
 
 class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
+
+    val TAG = MainActivity::class.simpleName
 
     companion object {
         var instance: MainActivity? = null
@@ -45,6 +52,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         dataRepository = DataRepository(appDatabase.dataDao())
         emailRepository = EmailRepository(appDatabase.emailDao())
 
+
         val port = 8090
 
         webServer = WebServer(port)
@@ -65,7 +73,40 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             println(msg)
             Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
         } catch (e: Exception) {
+            e.printStackTrace()
+        }
 
+        try {
+            val sizeObserver = Observer<Int> { s ->
+                run {
+                    if (s == 0) {
+                        Log.w(TAG, "Emails database is empty. Adding new admin account.")
+                        val email = Email()
+                        email.name = "admin"
+                        email.address = "admin@post.box"
+                        email.pass = WebAuth.sha512("admin")
+                        GlobalScope.launch {
+                            emailRepository?.insert(email)
+                            Log.i(TAG, "New admin account (admin:admin) created.")
+                        }
+                    }
+                }
+            }
+            emailRepository?.size?.observe(this, sizeObserver)
+
+//            GlobalScope.launch {
+//                if (appDatabase.emailDao().size().value == 0) {
+//                    Log.w(TAG, "Emails database is empty. Adding new admin account.")
+//                    val email = Email()
+//                    email.name = "admin"
+//                    email.address = "admin@post.box"
+//                    email.pass = WebAuth.sha512("admin")
+//                    emailRepository?.insert(email)
+//                    Log.i(TAG, "New admin account (admin:admin) created.")
+//                }
+//            }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
 
         if (savedInstanceState != null) {
@@ -90,10 +131,12 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         if (intent.getBooleanExtra("crash", false)) {
             Toast.makeText(this, "App restarted after crash", Toast.LENGTH_SHORT).show();
 //            crashTime = intent.getLongExtra("crashTime",0)/ 1000
+            setData("crashTime", intent.getLongExtra("crashTime", 0).toString())
         }
         if (intent.getBooleanExtra("kill", false)) {
             Toast.makeText(this, "App restarted after kill", Toast.LENGTH_SHORT).show();
 //            killTIme = intent.getLongExtra("killTime", 0)/ 1000
+            setData("killTime", intent.getLongExtra("killTime", 0).toString())
         }
     }
 
@@ -116,7 +159,6 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
     fun setData(key: String, value: String) {
         GlobalScope.launch {
-            println("setData->launch")
             instance?.let { dataRepository?.set(key, value) }
         }
     }
