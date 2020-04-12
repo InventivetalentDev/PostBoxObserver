@@ -7,14 +7,25 @@ import org.inventivetalent.postboxapp.database.entities.Email
 class EmailRepository(private val emailDao: EmailDao) {
 
     val size: LiveData<Int> = emailDao.size()
-    val allEmails: LiveData<List<Email>> = emailDao.getAll()
 
     suspend fun insert(vararg emails: Email) {
         emailDao.insert(*emails)
     }
 
+    suspend fun insertUpsert(vararg emails: Email) {
+        emailDao.insertUpsert(*emails)
+    }
+
     suspend fun update(vararg emails: Email) {
         emailDao.update(*emails)
+    }
+
+    suspend fun getAll(): List<Email> {
+        return emailDao.getAll()
+    }
+
+    suspend fun getById(id: Int): Email? {
+        return emailDao.getById(id)
     }
 
     suspend fun getByAddress(address: String): Email? {

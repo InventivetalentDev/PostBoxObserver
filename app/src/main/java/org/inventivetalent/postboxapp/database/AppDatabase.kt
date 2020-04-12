@@ -12,7 +12,7 @@ import org.inventivetalent.postboxapp.database.daos.EmailDao
 import org.inventivetalent.postboxapp.database.entities.Data
 import org.inventivetalent.postboxapp.database.entities.Email
 
-@Database(entities = [Data::class, Email::class], version = 2, exportSchema = false)
+@Database(entities = [Data::class, Email::class], version = 3, exportSchema = false)
 @TypeConverters(DateConverter::class, JsonConverter::class)
 abstract class AppDatabase : RoomDatabase() {
 

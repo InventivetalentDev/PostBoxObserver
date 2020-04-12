@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>PostBox User Editor</title>
+    </head>
+    <body>
+        <a href="/users">&lt;-</a>
+        <form method="post">
+            <div>
+                <label>
+                    Name
+                    <input type="text" name="name" value="$name">
+                </label>
+            </div>
+            <div>
+                <label>
+                    Email
+                    <input type="email" name="email" value="$email">
+                </label>
+            </div>
+            <br/>
+            <input type="hidden" name="id" value="$id">
+            <input type="submit" value="Update User">
+        </form>
+    </body>
+</html>

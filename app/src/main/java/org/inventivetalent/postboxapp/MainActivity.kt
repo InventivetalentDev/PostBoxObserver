@@ -79,32 +79,21 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         try {
             val sizeObserver = Observer<Int> { s ->
                 run {
+                    println("Emails database size changed: $s")
                     if (s == 0) {
-                        Log.w(TAG, "Emails database is empty. Adding new admin account.")
-                        val email = Email()
-                        email.name = "admin"
-                        email.address = "admin@post.box"
-                        email.pass = WebAuth.sha512("admin")
-                        GlobalScope.launch {
-                            emailRepository?.insert(email)
-                            Log.i(TAG, "New admin account (admin:admin) created.")
-                        }
+                        createAdminAccount()
                     }
                 }
             }
             emailRepository?.size?.observe(this, sizeObserver)
 
-//            GlobalScope.launch {
-//                if (appDatabase.emailDao().size().value == 0) {
-//                    Log.w(TAG, "Emails database is empty. Adding new admin account.")
-//                    val email = Email()
-//                    email.name = "admin"
-//                    email.address = "admin@post.box"
-//                    email.pass = WebAuth.sha512("admin")
-//                    emailRepository?.insert(email)
-//                    Log.i(TAG, "New admin account (admin:admin) created.")
-//                }
-//            }
+            GlobalScope.launch {
+                val s = appDatabase.emailDao().getSize()
+                println("Emails database size: $s")
+                if (s == 0) {
+                    createAdminAccount()
+                }
+            }
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -137,6 +126,18 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             Toast.makeText(this, "App restarted after kill", Toast.LENGTH_SHORT).show();
 //            killTIme = intent.getLongExtra("killTime", 0)/ 1000
             setData("killTime", intent.getLongExtra("killTime", 0).toString())
+        }
+    }
+
+     fun createAdminAccount() {
+        Log.w(TAG, "Emails database is empty. Adding new admin account.")
+        val email = Email()
+        email.name = "admin"
+        email.address = "admin@post.box"
+        email.pass = WebAuth.sha512("admin")
+        GlobalScope.launch {
+            emailRepository?.insert(email)
+            Log.i(TAG, "New admin account (admin:admin) created.")
         }
     }
 

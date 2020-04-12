@@ -1,9 +1,30 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <title>PostBox Dashboard</title>
-</head>
-<body>
-Hai!
-</body>
+    <head>
+        <title>PostBox Dashboard</title>
+    </head>
+    <body>
+        <div>
+            <span>PostBox Full <strong>$postBoxFull</strong></span><br/>
+        </div>
+        <br/>
+        <br/>
+        <div>
+            <label>Battery ($battery%)
+                <progress value="$battery" max="100">$battery%</progress>
+            </label><br/>
+            <span>Charging <strong>$charging</strong></span><br/>
+        </div>
+        <br/>
+        <br/>
+
+        <div>
+            <a href="/passwordchange">Change Password</a><br/>
+            <a href="/users">Manage Users</a><br/>
+
+            <br/>
+            <a href="/logout">Logout</a><br/>
+        </div>
+
+    </body>
 </html>

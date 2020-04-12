@@ -1,10 +1,7 @@
 package org.inventivetalent.postboxapp.database.daos
 
 import androidx.lifecycle.LiveData
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.Query
-import androidx.room.Update
+import androidx.room.*
 import org.inventivetalent.postboxapp.database.entities.Email
 
 @Dao
@@ -13,8 +10,15 @@ interface EmailDao {
     @Query("SELECT COUNT(id) FROM emails")
     fun size(): LiveData<Int>
 
+    @Query("SELECT COUNT(id) FROM emails")
+    fun getSize(): Int
+
+
     @Query("SELECT * FROM emails ")
-    fun getAll(): LiveData<List<Email>>
+    fun getAll(): List<Email>
+
+    @Query("SELECT * FROM emails WHERE id=:id LIMIT 1")
+    fun getById(id: Int): Email?
 
     @Query("SELECT * FROM emails WHERE `address`=:address LIMIT 1")
     fun getByAddress(address: String): Email?
@@ -30,5 +34,8 @@ interface EmailDao {
 
     @Insert
     fun insert(vararg emails: Email)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertUpsert(vararg emails: Email)
 
 }
