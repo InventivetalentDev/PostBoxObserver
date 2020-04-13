@@ -166,6 +166,8 @@ class WebServer(port: Int) : NanoHTTPD(port) {
                         return redirect("/useredit?id=$id")
                     }
                 }
+            }else{
+                //TODO: new user
             }
             return fileResponse(org.inventivetalent.postboxapp.R.raw.useredit, format)
         }
