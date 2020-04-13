@@ -6,7 +6,11 @@ import android.util.Log
 import androidx.annotation.RawRes
 import fi.iki.elonen.NanoHTTPD
 import kotlinx.coroutines.runBlocking
-import org.inventivetalent.postboxapp.*
+import org.inventivetalent.postboxapp.BatteryInfo
+import org.inventivetalent.postboxapp.EmailSender
+import org.inventivetalent.postboxapp.MainActivity
+import org.inventivetalent.postboxapp.R
+import org.inventivetalent.postboxapp.service.NotificationBackgroundService
 import org.inventivetalent.postboxapp.service.SensorBackgroundService
 import org.inventivetalent.postboxapp.web.WebAuth.Companion.checkAuth
 import org.inventivetalent.postboxapp.web.WebAuth.Companion.forbidden
@@ -18,6 +22,53 @@ import org.json.JSONObject
 
 class WebServer(port: Int) : NanoHTTPD(port) {
 
+
+    companion object{
+
+        fun getPostBoxInfo(): Map<String, Any?> {
+            val info = HashMap<String, Any?>()
+            val proximity = getProximity()
+            val proximityTime = getProximityTime()
+            info["proximity"] = proximity
+            info["proximityTime"] = proximityTime
+            val postBoxFull = (proximity != null && proximity < 2)
+            info["postBoxFull"] = postBoxFull
+            val postBoxFullRecently =
+                postBoxFull && proximityTime != null && (System.currentTimeMillis() - proximityTime < 320000)
+            info["postBoxFullRecently"] = postBoxFullRecently
+            val batteryInfo = getBatteryInfo()
+            info["battery"] = batteryInfo.batteryPct
+            info["charging"] = batteryInfo.isCharging
+            info["sensorServiceRunning"] = isServiceRunning(SensorBackgroundService::class.java)
+            info["notificationServiceRunning"] = isServiceRunning(NotificationBackgroundService::class.java)
+            return info
+        }
+
+        fun getProximity(): Float? {
+            return runBlocking {
+                return@runBlocking MainActivity.instance?.dataRepository?.get("proximity")
+            }?.toFloatOrNull()
+        }
+
+        fun getProximityTime(): Long? {
+            return runBlocking {
+                return@runBlocking MainActivity.instance?.dataRepository?.get("proximityTime")
+            }?.toLongOrNull()
+        }
+
+        fun getBatteryInfo() = BatteryInfo()
+
+        // Based on https://stackoverflow.com/a/5921190/6257838
+        fun <T> isServiceRunning(clazz: Class<T>): Boolean {
+            val manager = MainActivity.instance?.getSystemService(ACTIVITY_SERVICE) as ActivityManager?
+            for (service in manager!!.getRunningServices(Integer.MAX_VALUE)) {
+                if (clazz.name == service.service.className) {
+                    return true
+                }
+            }
+            return false
+        }
+    }
 
     override fun serve(session: IHTTPSession?): Response {
         if (session == null) return super.serve(session)
@@ -220,7 +271,7 @@ class WebServer(port: Int) : NanoHTTPD(port) {
                 return@runBlocking MainActivity.instance?.emailRepository?.getByName("admin")
             } ?: return notFound()
 
-            EmailSender.sendEmail( emailEntry.address!!, emailEntry.name ?: "PostBox Operator", "Test Mail", "This is a test email from the PostBox App! ${System.currentTimeMillis()}")
+            EmailSender.sendEmail( mapOf((emailEntry.address!!) to (emailEntry.name ?: "PostBox Operator")), "Test Mail", "This is a test email from the PostBox App! ${System.currentTimeMillis()}")
             return newFixedLengthResponse("Email sent!")
         }
 
@@ -228,23 +279,9 @@ class WebServer(port: Int) : NanoHTTPD(port) {
         return super.serve(session)
     }
 
-    fun getPostBoxInfo(): Map<String, Any?> {
-        val info = HashMap<String, Any?>()
-        val proximity = getProximity()
-        val proximityTime = getProximityTime()
-        info["proximity"] = proximity
-        info["proximityTime"] = proximityTime
-        val postBoxFull = (proximity != null && proximity < 2)
-        info["postBoxFull"] = postBoxFull
-        val postBoxFullRecently =
-            postBoxFull && proximityTime != null && (System.currentTimeMillis() - proximityTime < 300000)
-        info["postBoxFullRecently"] = postBoxFullRecently
-        val batteryInfo = getBatteryInfo()
-        info["battery"] = batteryInfo.batteryPct
-        info["charging"] = batteryInfo.isCharging
-        info["serviceRunning"] = isServiceRunning()
-        return info
-    }
+
+
+
 
     fun fileResponse(@RawRes file: Int, mime: String = "text/html"): Response {
         return newChunkedResponse(
@@ -277,29 +314,6 @@ class WebServer(port: Int) : NanoHTTPD(port) {
         return newFixedLengthResponse(Response.Status.NOT_FOUND, "text/plain", msg)
     }
 
-    fun getProximity(): Float? {
-        return runBlocking {
-            return@runBlocking MainActivity.instance?.dataRepository?.get("proximity")
-        }?.toFloatOrNull()
-    }
 
-    fun getProximityTime(): Long? {
-        return runBlocking {
-            return@runBlocking MainActivity.instance?.dataRepository?.get("proximityTime")
-        }?.toLongOrNull()
-    }
-
-    fun getBatteryInfo() = BatteryInfo()
-
-    // Based on https://stackoverflow.com/a/5921190/6257838
-    fun isServiceRunning(): Boolean {
-        val manager = MainActivity.instance?.getSystemService(ACTIVITY_SERVICE) as ActivityManager?
-        for (service in manager!!.getRunningServices(Integer.MAX_VALUE)) {
-            if (SensorBackgroundService::class.java.name == service.service.className) {
-                return true
-            }
-        }
-        return false
-    }
 
 }

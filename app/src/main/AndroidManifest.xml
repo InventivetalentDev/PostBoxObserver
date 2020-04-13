@@ -38,11 +38,27 @@
                 <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
+        <receiver
+            android:name=".service.NotificationBroadcastReceiver"
+            android:directBootAware="true"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
 
-        <service android:name=".service.SensorBackgroundService" android:enabled="true"></service>
+        <service android:name=".service.SensorBackgroundService" android:enabled="true"/>
+        <service android:name=".service.NotificationBackgroundService" android:enabled="true"/>
 
         <service
             android:name=".service.SensorService"
+            android:enabled="true"
+            android:exported="false"
+            android:process=":remote" />
+        <service
+            android:name=".service.NotificationService"
             android:enabled="true"
             android:exported="false"
             android:process=":remote" />

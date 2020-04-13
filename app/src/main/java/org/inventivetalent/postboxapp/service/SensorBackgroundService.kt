@@ -13,12 +13,13 @@ import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import android.os.PowerManager
+import android.text.format.DateFormat
 import androidx.core.app.NotificationCompat
 import org.inventivetalent.postboxapp.MainActivity
 import org.inventivetalent.postboxapp.NotificationHelper
 import org.inventivetalent.postboxapp.NotificationHelper.Companion.DEFAULT_CHANNEL_ID
 import org.inventivetalent.postboxapp.PostBoxApp
-import org.inventivetalent.postboxapp.R
+
 
 class SensorBackgroundService : Service(), SensorEventListener {
 
@@ -31,6 +32,7 @@ class SensorBackgroundService : Service(), SensorEventListener {
 
     companion object {
         val KEY_SENSOR_TYPE = "sensor_type"
+        val INTERVAL:Long = 60000
 
         fun start(appContext: Context, sensorType: Int) {
             println("sensor service start ($sensorType)")
@@ -60,7 +62,7 @@ class SensorBackgroundService : Service(), SensorEventListener {
             (appContext.getSystemService(Context.ALARM_SERVICE) as AlarmManager).setInexactRepeating(
                 AlarmManager.RTC_WAKEUP,
                 0,
-                10000L,
+                INTERVAL,
                 scheduledIntent
             )
         }
@@ -68,7 +70,8 @@ class SensorBackgroundService : Service(), SensorEventListener {
 
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        println("sensor service start command ${System.currentTimeMillis()} ${hashCode()}")
+        var date = DateFormat.format("dd-MM-yyyy hh:mm:ss", java.util.Date()).toString()
+        println("[$date] sensor service start command ${System.currentTimeMillis()} ${hashCode()}")
 
         mSensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         mPowerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
@@ -89,8 +92,9 @@ class SensorBackgroundService : Service(), SensorEventListener {
 
         try {
             val builder = NotificationCompat.Builder(applicationContext, DEFAULT_CHANNEL_ID)
-                .setContentTitle("PostBox service running")
-                .setSmallIcon(R.drawable.ic_mail_outline_black_24dp)
+                .setContentTitle("PostBox Sensor service running")
+                .setContentText("Proximity: $previousValue")
+                .setSmallIcon(org.inventivetalent.postboxapp.R.drawable.ic_mail_outline_black_24dp)
                 .setOngoing(true)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             NotificationHelper.sendNotification(
@@ -107,6 +111,7 @@ class SensorBackgroundService : Service(), SensorEventListener {
     }
 
     override fun onBind(intent: Intent?): IBinder? {
+        println("sensor service onBind")
         return null
     }
 

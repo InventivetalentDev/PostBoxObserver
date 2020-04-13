@@ -20,6 +20,7 @@ import org.inventivetalent.postboxapp.database.AppDatabase
 import org.inventivetalent.postboxapp.database.entities.Email
 import org.inventivetalent.postboxapp.database.repositories.DataRepository
 import org.inventivetalent.postboxapp.database.repositories.EmailRepository
+import org.inventivetalent.postboxapp.service.NotificationBroadcastReceiver
 import org.inventivetalent.postboxapp.service.SensorBroadcastReceiver
 import org.inventivetalent.postboxapp.web.WebAuth
 import org.inventivetalent.postboxapp.web.WebServer
@@ -103,19 +104,8 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             currentProximity = savedInstanceState.getFloat("proximity")
         }
 
-        val alarmIntent = Intent(this, SensorBroadcastReceiver::class.java)
-        val pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, 0)
-
-        val alarmManager = getSystemService(Service.ALARM_SERVICE) as AlarmManager
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, 0, pendingIntent);
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            alarmManager.setExact(AlarmManager.RTC_WAKEUP, 0, pendingIntent);
-        } else {
-            alarmManager.set(AlarmManager.RTC_WAKEUP, 0, pendingIntent);
-        }
-
+        launchReceiver(SensorBroadcastReceiver::class.java)
+        launchReceiver(NotificationBroadcastReceiver::class.java)
 
 
         if (intent.getBooleanExtra("crash", false)) {
@@ -130,7 +120,22 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         }
     }
 
-     fun createAdminAccount() {
+    fun <T> launchReceiver(clazz: Class<T>) {
+        val alarmIntent = Intent(this, clazz)
+        val pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, 0)
+
+        val alarmManager = getSystemService(Service.ALARM_SERVICE) as AlarmManager
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, 0, pendingIntent)
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            alarmManager.setExact(AlarmManager.RTC_WAKEUP, 0, pendingIntent)
+        } else {
+            alarmManager.set(AlarmManager.RTC_WAKEUP, 0, pendingIntent)
+        }
+    }
+
+    fun createAdminAccount() {
         Log.w(TAG, "Emails database is empty. Adding new admin account.")
         val email = Email()
         email.name = "admin"

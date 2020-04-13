@@ -6,14 +6,14 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 
-class SensorService : IntentService("PostBoxSensorService") {
+class NotificationService : IntentService("PostBoxNotificationService") {
 
     override fun onHandleIntent(intent: Intent?) {
         val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-        val alarmIntent = Intent(this, SensorBroadcastReceiver::class.java)
+        val alarmIntent = Intent(this, NotificationBroadcastReceiver::class.java)
         val pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, 0)
-        alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, 0, SensorBackgroundService.INTERVAL, pendingIntent)
+        alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, 0, NotificationBackgroundService.INTERVAL, pendingIntent)
 
     }
 

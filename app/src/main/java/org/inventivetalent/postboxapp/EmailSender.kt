@@ -28,13 +28,13 @@ class EmailSender {
             return MainActivity.instance?.dataRepository?.get("MAILJET_SENDER")
         }
 
-        fun sendEmail(to: String, toName: String, subject: String, content: String, from: String = "__config__") {
+        fun sendEmail(to: Map<String, String?>, subject: String, content: String, from: String = "__config__") {
             GlobalScope.launch {
-                sendEmailBlocking(to, toName, subject, content, from)
+                sendEmailBlocking(to,  subject, content, from)
             }
         }
 
-        suspend fun sendEmailBlocking(to: String, toName: String, subject: String, content: String, from0: String = "__config__") {
+        suspend fun sendEmailBlocking(to: Map<String, String?>, subject: String, content: String, from0: String = "__config__") {
             val apiKey = getApiKey()
             if (apiKey == null) {
                 Log.w("EmailSender", "Missing API Key, can't send email.")
@@ -63,6 +63,18 @@ class EmailSender {
                 apiSecret,
                 ClientOptions("v3.1")
             )
+
+            Log.i("EmailSender", "Sending email to ${to.size} receivers:")
+
+            val toArray = JSONArray()
+            to.forEach { (k, v) ->
+                Log.i("EmailSender", k)
+                val obj = JSONObject()
+                    .put("Email", k)
+                if(v!=null) obj.put("Name", v)
+                toArray.put(obj)
+            }
+
             request = MailjetRequest(Emailv31.resource)
                 .property(
                     Emailv31.MESSAGES, JSONArray()
@@ -74,12 +86,7 @@ class EmailSender {
                                         .put("Name", "PostBox")
                                 )
                                 .put(
-                                    Emailv31.Message.TO, JSONArray()
-                                        .put(
-                                            JSONObject()
-                                                .put("Email", to)
-                                                .put("Name", toName)
-                                        )
+                                    Emailv31.Message.TO, toArray
                                 )
                                 .put(Emailv31.Message.SUBJECT, subject)
                                 .put(Emailv31.Message.TEXTPART, content)
