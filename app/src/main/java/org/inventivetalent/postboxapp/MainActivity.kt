@@ -20,6 +20,7 @@ import org.inventivetalent.postboxapp.database.AppDatabase
 import org.inventivetalent.postboxapp.database.entities.Email
 import org.inventivetalent.postboxapp.database.repositories.DataRepository
 import org.inventivetalent.postboxapp.database.repositories.EmailRepository
+import org.inventivetalent.postboxapp.service.SensorBroadcastReceiver
 import org.inventivetalent.postboxapp.web.WebAuth
 import org.inventivetalent.postboxapp.web.WebServer
 
@@ -102,7 +103,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             currentProximity = savedInstanceState.getFloat("proximity")
         }
 
-        val alarmIntent = Intent(this, TheBroadcastReceiver::class.java)
+        val alarmIntent = Intent(this, SensorBroadcastReceiver::class.java)
         val pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, 0)
 
         val alarmManager = getSystemService(Service.ALARM_SERVICE) as AlarmManager

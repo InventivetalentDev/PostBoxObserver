@@ -1,4 +1,4 @@
-package org.inventivetalent.postboxapp
+package org.inventivetalent.postboxapp.service
 
 import android.app.AlarmManager
 import android.app.PendingIntent
@@ -14,7 +14,11 @@ import android.os.Bundle
 import android.os.IBinder
 import android.os.PowerManager
 import androidx.core.app.NotificationCompat
+import org.inventivetalent.postboxapp.MainActivity
+import org.inventivetalent.postboxapp.NotificationHelper
 import org.inventivetalent.postboxapp.NotificationHelper.Companion.DEFAULT_CHANNEL_ID
+import org.inventivetalent.postboxapp.PostBoxApp
+import org.inventivetalent.postboxapp.R
 
 class SensorBackgroundService : Service(), SensorEventListener {
 
@@ -89,7 +93,11 @@ class SensorBackgroundService : Service(), SensorEventListener {
                 .setSmallIcon(R.drawable.ic_mail_outline_black_24dp)
                 .setOngoing(true)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-            NotificationHelper.sendNotification(applicationContext, builder.build(), 50)
+            NotificationHelper.sendNotification(
+                applicationContext,
+                builder.build(),
+                50
+            )
         } catch (e: Exception) {
             e.printStackTrace()
         }

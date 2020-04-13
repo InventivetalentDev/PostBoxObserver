@@ -29,7 +29,7 @@
         </activity>
 
         <receiver
-            android:name=".TheBroadcastReceiver"
+            android:name=".service.SensorBroadcastReceiver"
             android:directBootAware="true"
             android:enabled="true"
             android:exported="true">
@@ -39,10 +39,10 @@
             </intent-filter>
         </receiver>
 
-        <service android:name=".SensorBackgroundService" android:enabled="true"></service>
+        <service android:name=".service.SensorBackgroundService" android:enabled="true"></service>
 
         <service
-            android:name=".TheService"
+            android:name=".service.SensorService"
             android:enabled="true"
             android:exported="false"
             android:process=":remote" />

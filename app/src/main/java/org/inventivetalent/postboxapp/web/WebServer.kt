@@ -7,6 +7,7 @@ import androidx.annotation.RawRes
 import fi.iki.elonen.NanoHTTPD
 import kotlinx.coroutines.runBlocking
 import org.inventivetalent.postboxapp.*
+import org.inventivetalent.postboxapp.service.SensorBackgroundService
 import org.inventivetalent.postboxapp.web.WebAuth.Companion.checkAuth
 import org.inventivetalent.postboxapp.web.WebAuth.Companion.forbidden
 import org.inventivetalent.postboxapp.web.WebAuth.Companion.getUser
