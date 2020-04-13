@@ -4,9 +4,6 @@ import android.app.ActivityManager
 import android.content.Context.ACTIVITY_SERVICE
 import android.util.Log
 import androidx.annotation.RawRes
-import com.sendgrid.helpers.mail.Mail
-import com.sendgrid.helpers.mail.objects.Content
-import com.sendgrid.helpers.mail.objects.Email
 import fi.iki.elonen.NanoHTTPD
 import kotlinx.coroutines.runBlocking
 import org.inventivetalent.postboxapp.*
@@ -165,11 +162,19 @@ class WebServer(port: Int) : NanoHTTPD(port) {
             if (method == Method.POST) {
                 session.parseBody(null)
 
-                val sendgridkey = params["sendgridkey"]?.get(0)
+                val mailjetkey = params["mailjetkey"]?.get(0)
+                val mailjetsecret = params["mailjetsecret"]?.get(0)
+                val emailsender = params["emailsender"]?.get(0)
 
                 runBlocking {
-                    if (sendgridkey != null) {
-                        MainActivity.instance?.setData("SENDGRID_API_KEY", sendgridkey)
+                    if (mailjetkey != null) {
+                        MainActivity.instance?.setData("MAILJET_API_KEY", mailjetkey)
+                    }
+                    if (mailjetsecret != null) {
+                        MainActivity.instance?.setData("MAILJET_API_SECRET", mailjetsecret)
+                    }
+                    if (emailsender != null) {
+                        MainActivity.instance?.setData("MAILJET_SENDER", emailsender)
                     }
                 }
                 return redirect("/settings")
@@ -179,7 +184,15 @@ class WebServer(port: Int) : NanoHTTPD(port) {
             val apiKey = runBlocking {
                 return@runBlocking EmailSender.getApiKey()
             }
-            format["sendgridkey"] = apiKey ?: ""
+            val apiSecret = runBlocking {
+                return@runBlocking EmailSender.getApiSecret()
+            }
+            val sender = runBlocking {
+                return@runBlocking EmailSender.getSender()
+            }
+            format["mailjetkey"] = apiKey ?: ""
+            format["mailjetsecret"] = apiSecret ?: ""
+            format["emailsender"] = sender ?: ""
 
             return fileResponse(R.raw.settings, format)
         }
@@ -206,13 +219,10 @@ class WebServer(port: Int) : NanoHTTPD(port) {
                 return@runBlocking MainActivity.instance?.emailRepository?.getByName("admin")
             } ?: return notFound()
 
-            val from = Email("no-reply@post.box")
-            val to = Email(emailEntry.address)
-            val content = Content("text/plain", "This is a test email from the PostBox App!")
-            val mail = Mail(from,"Test Email",to,content)
-            EmailSender.sendEmail(mail)
+            EmailSender.sendEmail( emailEntry.address!!, emailEntry.name ?: "PostBox Operator", "Test Mail", "This is a test email from the PostBox App! ${System.currentTimeMillis()}")
             return newFixedLengthResponse("Email sent!")
         }
+
 
         return super.serve(session)
     }
