@@ -12,6 +12,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
+import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.MainScope
@@ -73,6 +74,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             )
             val msg = "Web Interface running on $ip:$port"
             println(msg)
+            webAddressText.text = getString(R.string.web_address_format, ip, port.toString())
             Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
         } catch (e: Exception) {
             e.printStackTrace()
