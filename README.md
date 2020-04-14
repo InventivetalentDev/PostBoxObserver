@@ -1,6 +1,6 @@
 # PostBoxApp
 Utilize an old Smartphone to be Notified about Mail in a Postbox!
 
-![https://youtu.be/l7YUIlH6ZNY](https://i.giphy.com/media/U1lzxI3Be9PJlOkGMw/giphy.gif)
+![https://youtu.be/oWcwby2kBHo](https://i.giphy.com/media/j5QazwKivTVmUt4tyi/giphy.gif)
 
-The icon used in the animation is [`envolope`](https://fontawesome.com/icons/envelope?style=regular) from [Font Awesome](https://fontawesome.com/license)
+The icons used in the animation are [`envolope`](https://fontawesome.com/icons/envelope?style=regular) and [☻`eye`](https://fontawesome.com/icons/eye?style=regular) from [Font Awesome](https://fontawesome.com/license)
