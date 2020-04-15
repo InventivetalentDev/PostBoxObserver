@@ -1,6 +1,7 @@
 package org.inventivetalent.postboxapp.service
 
 import android.app.AlarmManager
+import android.app.Notification
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
@@ -28,6 +29,8 @@ class NotificationBackgroundService : Service() {
 
     companion object {
         val INTERVAL:Long = 5*60000
+
+         var notification:Notification? =null
 
 
         fun start(appContext: Context) {
@@ -87,9 +90,10 @@ class NotificationBackgroundService : Service() {
                 .setSmallIcon(R.drawable.ic_notifications_black_24dp)
                 .setOngoing(true)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            notification = builder.build()
             NotificationHelper.sendNotification(
                 applicationContext,
-                builder.build(),
+                notification!!,
                 55
             )
         } catch (e: Exception) {
@@ -140,6 +144,9 @@ class NotificationBackgroundService : Service() {
         super.onCreate()
 
         println("notification service onCreate")
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForeground(0, notification)
+        }
     }
 
     override fun onDestroy() {

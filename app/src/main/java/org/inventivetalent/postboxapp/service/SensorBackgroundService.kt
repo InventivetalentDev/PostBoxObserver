@@ -1,6 +1,7 @@
 package org.inventivetalent.postboxapp.service
 
 import android.app.AlarmManager
+import android.app.Notification
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
@@ -33,6 +34,8 @@ class SensorBackgroundService : Service(), SensorEventListener {
     companion object {
         val KEY_SENSOR_TYPE = "sensor_type"
         val INTERVAL:Long = 60000
+
+         var notification: Notification? =null
 
         fun start(appContext: Context, sensorType: Int) {
             println("sensor service start ($sensorType)")
@@ -97,9 +100,10 @@ class SensorBackgroundService : Service(), SensorEventListener {
                 .setSmallIcon(org.inventivetalent.postboxapp.R.drawable.ic_mail_outline_black_24dp)
                 .setOngoing(true)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            notification = builder.build()
             NotificationHelper.sendNotification(
                 applicationContext,
-                builder.build(),
+                notification!!,
                 50
             )
         } catch (e: Exception) {
@@ -119,6 +123,9 @@ class SensorBackgroundService : Service(), SensorEventListener {
         super.onCreate()
 
         println("sensor service onCreate")
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForeground(0, notification)
+        }
     }
 
     override fun onDestroy() {
