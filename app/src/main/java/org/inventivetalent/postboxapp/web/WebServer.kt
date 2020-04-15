@@ -4,6 +4,7 @@ import android.app.ActivityManager
 import android.content.Context
 import android.content.Context.ACTIVITY_SERVICE
 import android.net.wifi.WifiManager
+import android.os.Build
 import android.provider.Settings
 import android.text.format.DateFormat
 import android.util.Log
@@ -76,7 +77,16 @@ class WebServer(port: Int) : NanoHTTPD(port) {
 
         fun getBatteryInfo() = BatteryInfo()
 
-        fun getDeviceName() = Settings.Secure.getString(MainActivity.instance?.contentResolver, "bluetooth_name")
+        fun getDeviceName():String {
+            // https://medium.com/capital-one-tech/how-to-get-an-android-device-nickname-d5eab12f4ced
+            val bluetoothName = Settings.Secure.getString(MainActivity.instance?.contentResolver, "bluetooth_name")
+            if(bluetoothName!=null)return bluetoothName
+            val deviceName = Settings.Secure.getString(MainActivity.instance?.contentResolver, "device_name")
+            if(deviceName!=null)return deviceName
+            val lockScreenName = Settings.Secure.getString(MainActivity.instance?.contentResolver, "lock_screen_owner_info")
+            if(lockScreenName!=null)return lockScreenName
+            return Build.MODEL
+        }
 
         fun getPort() = 8090
 
