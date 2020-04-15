@@ -143,12 +143,16 @@ class WebServer(port: Int) : NanoHTTPD(port) {
                 format["extraLinks"] = "<a href=\"/users\">Manage Users</a><br/>\n" +
                         "<a href=\"/settings\">System Settings</a><br/>"
             }else{
-                val emailEntry = runBlocking {
-                    return@runBlocking MainActivity.instance?.emailRepository?.getByNameOrAddress(getUser(session)!!)
-                } ?: return notFound()
-                format["extraLinks"] = "<a href=\"/useredit?id=${emailEntry.id}\">Your Settings</a><br/>\n"
+                format["extraLinks"] = ""
             }
             return fileResponse(R.raw.dashboard, format)
+        }
+
+        if ("/mysettings" == uri) {
+            val emailEntry = runBlocking {
+                return@runBlocking MainActivity.instance?.emailRepository?.getByNameOrAddress(getUser(session)!!)
+            } ?: return notFound()
+            return redirect("/useredit?id=${emailEntry.id}")
         }
 
         if ("/users" == uri) {

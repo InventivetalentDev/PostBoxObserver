@@ -113,16 +113,11 @@ class NotificationBackgroundService : Service() {
         if (info["postBoxFullRecently"] as Boolean) {
             Log.i("NotificationService", "PostBox is newly full!")
 
-            val date = DateFormat.format("dd-MM-yyyy HH:mm:ss", java.util.Date()).toString()
-            val battery = info["battery"]
-            sendEmails("There's Something in Your PostBox!\n" +
-                    "\n" +
-                    "PostBox Full Since $date$\n" +
-                    "Battery Charge at $battery$%\n")
+            sendEmails(info)
         }
     }
 
-    suspend fun sendEmails(text: String) {
+    suspend fun sendEmails(format: Map<String, Any?>) {
         val emailEntries = MainActivity.instance?.emailRepository?.getAll()
         val toMap = HashMap<String, String?>()
         emailEntries?.forEach {
@@ -131,7 +126,7 @@ class NotificationBackgroundService : Service() {
             }
         }
         if (toMap.size > 0) {
-            EmailSender.sendEmail(toMap, "You've got Mail!", text)
+            EmailSender.sendEmail(toMap, "You've got Mail!", R.raw.notification_email, format)
         }
     }
 
