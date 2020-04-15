@@ -130,10 +130,13 @@ class WebServer(port: Int) : NanoHTTPD(port) {
             }
             val format = baseFormat(getPostBoxInfo())
             if(getUser(session)=="admin") {
-                format["adminLinks"] = "<a href=\"/users\">Manage Users</a><br/>\n" +
+                format["extraLinks"] = "<a href=\"/users\">Manage Users</a><br/>\n" +
                         "<a href=\"/settings\">System Settings</a><br/>"
             }else{
-                format["adminLinks"] = ""
+                val emailEntry = runBlocking {
+                    return@runBlocking MainActivity.instance?.emailRepository?.getByNameOrAddress(getUser(session)!!)
+                } ?: return notFound()
+                format["extraLinks"] = "<a href=\"/useredit?id=${emailEntry.id}\">Your Settings</a><br/>\n"
             }
             return fileResponse(R.raw.dashboard, format)
         }
