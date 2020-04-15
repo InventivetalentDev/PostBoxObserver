@@ -277,6 +277,10 @@ class WebServer(port: Int) : NanoHTTPD(port) {
             return newFixedLengthResponse("Email sent!")
         }
 
+        if ("/favicon.ico" == uri) {
+            return fileResponse(R.raw.favicon)
+        }
+
 
         return super.serve(session)
     }
