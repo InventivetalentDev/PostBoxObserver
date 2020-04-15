@@ -1,0 +1,15 @@
+.centered{
+    text-align: center;
+}
+img.centered, .centered img{
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+.progress.centered, .centered .progress{
+    margin-left: auto;
+    margin-right: auto;
+}
+.small-progress{
+    width: 50%;
+}

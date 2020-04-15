@@ -23,7 +23,7 @@ import org.json.JSONObject
 class WebServer(port: Int) : NanoHTTPD(port) {
 
 
-    companion object{
+    companion object {
 
         fun getPostBoxInfo(): Map<String, Any?> {
             val info = HashMap<String, Any?>()
@@ -40,7 +40,8 @@ class WebServer(port: Int) : NanoHTTPD(port) {
             info["battery"] = batteryInfo.batteryPct
             info["charging"] = batteryInfo.isCharging
             info["sensorServiceRunning"] = isServiceRunning(SensorBackgroundService::class.java)
-            info["notificationServiceRunning"] = isServiceRunning(NotificationBackgroundService::class.java)
+            info["notificationServiceRunning"] =
+                isServiceRunning(NotificationBackgroundService::class.java)
             return info
         }
 
@@ -60,7 +61,8 @@ class WebServer(port: Int) : NanoHTTPD(port) {
 
         // Based on https://stackoverflow.com/a/5921190/6257838
         fun <T> isServiceRunning(clazz: Class<T>): Boolean {
-            val manager = MainActivity.instance?.getSystemService(ACTIVITY_SERVICE) as ActivityManager?
+            val manager =
+                MainActivity.instance?.getSystemService(ACTIVITY_SERVICE) as ActivityManager?
             for (service in manager!!.getRunningServices(Integer.MAX_VALUE)) {
                 if (clazz.name == service.service.className) {
                     return true
@@ -81,7 +83,7 @@ class WebServer(port: Int) : NanoHTTPD(port) {
 
 
         if ("/" == uri) {
-            return fileResponse(org.inventivetalent.postboxapp.R.raw.index)
+            return fileResponse(R.raw.index, baseFormat())
         }
         if ("/logout" == uri) {
             return if (session.headers.contains("authorization")) unauthorized(false) else redirect(
@@ -94,8 +96,8 @@ class WebServer(port: Int) : NanoHTTPD(port) {
             if (a != WebAuth.AuthStatus.OK) {
                 return a.response()
             }
-            val format = getPostBoxInfo()
-            return fileResponse(org.inventivetalent.postboxapp.R.raw.dashboard, format)
+            val format = baseFormat(getPostBoxInfo())
+            return fileResponse(R.raw.dashboard, format)
         }
 
         if ("/users" == uri) {
@@ -166,7 +168,7 @@ class WebServer(port: Int) : NanoHTTPD(port) {
                         return redirect("/useredit?id=$id")
                     }
                 }
-            }else{
+            } else {
                 //TODO: new user
             }
             return fileResponse(org.inventivetalent.postboxapp.R.raw.useredit, format)
@@ -201,10 +203,10 @@ class WebServer(port: Int) : NanoHTTPD(port) {
                     runBlocking {
                         MainActivity.instance?.emailRepository?.update(emailEntry)
                     }
-                    return fileResponse(org.inventivetalent.postboxapp.R.raw.passwordchanged)
+                    return fileResponse(R.raw.passwordchanged, baseFormat())
                 }
             }
-            return fileResponse(org.inventivetalent.postboxapp.R.raw.passwordchange)
+            return fileResponse(R.raw.passwordchange, baseFormat())
         }
 
         if ("/settings" == uri) {
@@ -273,25 +275,39 @@ class WebServer(port: Int) : NanoHTTPD(port) {
                 return@runBlocking MainActivity.instance?.emailRepository?.getByName("admin")
             } ?: return notFound()
 
-            EmailSender.sendEmail( mapOf((emailEntry.address!!) to (emailEntry.name ?: "PostBox Operator")), "Test Mail", "This is a test email from the PostBox App! ${System.currentTimeMillis()}")
+            EmailSender.sendEmail(
+                mapOf(
+                    (emailEntry.address!!) to (emailEntry.name ?: "PostBox Operator")
+                ),
+                "Test Mail",
+                "This is a test email from the PostBox App! ${System.currentTimeMillis()}"
+            )
             return newFixedLengthResponse("Email sent!")
         }
 
         if ("/favicon.ico" == uri) {
-            return fileResponse(R.raw.favicon)
+            return fileResponse(R.raw.favicon, mime = "image/x-icon")
+        }
+        if ("/style.css" == uri) {
+            return fileResponse(R.raw.style, mime = "text/css")
         }
 
 
+        Log.w("WebServer", "Failed to respond to URI $uri")
         return super.serve(session)
     }
 
     fun baseFormat(def: Map<String, Any?> = HashMap()): MutableMap<String, Any?> {
-        val map =  HashMap(def)
-        map["styles"] = ""
+        val map = HashMap(def)
+        map["styles"] =
+            "<link href=\"https://fonts.googleapis.com/icon?family=Material+Icons\" rel=\"stylesheet\">" +
+                    "<link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css\">\n" +
+                    "<link rel=\"stylesheet\" href=\"style.css\">" +
+                    "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
         map["scripts"] = ""
-        return map
+        "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js\"></script>" +
+                return map
     }
-
 
 
     fun fileResponse(@RawRes file: Int, mime: String = "text/html"): Response {
@@ -324,7 +340,6 @@ class WebServer(port: Int) : NanoHTTPD(port) {
     fun notFound(msg: String = "Not Found"): Response {
         return newFixedLengthResponse(Response.Status.NOT_FOUND, "text/plain", msg)
     }
-
 
 
 }

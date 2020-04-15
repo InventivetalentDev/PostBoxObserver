@@ -2,30 +2,60 @@
 <html>
     <head>
         <title>PostBox Dashboard</title>
+        $styles
     </head>
     <body>
-        <div>
-            <span>PostBox Full <strong>$postBoxFull</strong></span><br/>
-        </div>
-        <br/>
-        <br/>
-        <div>
-            <label>Battery ($battery%)
-                <progress value="$battery" max="100">$battery%</progress>
-            </label><br/>
-            <span>Charging <strong>$charging</strong></span><br/>
-        </div>
-        <br/>
-        <br/>
-
-        <div>
-            <a href="/passwordchange">Change Password</a><br/>
-            <a href="/users">Manage Users</a><br/>
-            <a href="/settings">Settings</a><br/>
-
+        <div class="container centered">
+            <img class="centered" src="https://res.cloudinary.com/inventivetalent/image/upload/brand/postbox/eye_letter-x128.png" width="128" height="128" alt="PostBoxObserver Logo">
             <br/>
-            <a href="/logout">Logout</a><br/>
+            <div class="row">
+                <h5 id="postBoxStateText">Checking Postbox...</h5>
+            </div>
+            <br/>
+            <br/>
+            <div class="row">
+                <h6 id="batteryText">Battery at $battery%</h6>
+                <div class="progress small-progress" style="margin-bottom: 0.1rem">
+                    <div id="batteryCharge" class="determinate" style="width: $battery%"></div>
+                </div>
+                <span id="chargingState">Charging <strong>$charging</strong></span><br/>
+            </div>
+            <br/>
+            <br/>
+
+            <div>
+                <a href="/passwordchange">Change Password</a><br/>
+                <a href="/users">Manage Users</a><br/>
+                <a href="/settings">Settings</a><br/>
+
+                <br/>
+                <a href="/logout">Logout</a><br/>
+            </div>
         </div>
 
+        $scripts
+        <script>
+            let postBoxFull = "$postBoxFull" === "true";
+            let battery = parseInt("$battery") || 0;
+            let charging = "$charging" === "true";
+
+            function updateStateTexts() {
+                if (postBoxFull) {
+                    document.getElementById("postBoxStateText").innerHTML = "<b>There's something in your PostBox!</b>";
+                }else{
+                    document.getElementById("postBoxStateText").innerHTML = "PostBox is empty.";
+                }
+
+                if (charging) {
+                    document.getElementById("chargingState").innerHTML = "Charging";
+                }else{
+                    document.getElementById("chargingState").innerHTML = "Not Charging";
+                }
+
+                document.getElementById("batteryText").innerHTML = "Battery at " + battery + "%";
+                document.getElementById("batteryCharge").style.width = battery + "%";
+            }
+            updateStateTexts();
+        </script>
     </body>
 </html>
