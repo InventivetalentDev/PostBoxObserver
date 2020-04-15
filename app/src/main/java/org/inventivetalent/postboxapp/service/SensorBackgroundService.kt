@@ -20,6 +20,7 @@ import org.inventivetalent.postboxapp.MainActivity
 import org.inventivetalent.postboxapp.NotificationHelper
 import org.inventivetalent.postboxapp.NotificationHelper.Companion.DEFAULT_CHANNEL_ID
 import org.inventivetalent.postboxapp.PostBoxApp
+import org.inventivetalent.postboxapp.web.WebServer
 
 
 class SensorBackgroundService : Service(), SensorEventListener {
@@ -73,7 +74,7 @@ class SensorBackgroundService : Service(), SensorEventListener {
 
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        var date = DateFormat.format("dd-MM-yyyy hh:mm:ss", java.util.Date()).toString()
+        val date = WebServer.dateFormat()
         println("[$date] sensor service start command ${System.currentTimeMillis()} ${hashCode()}")
 
         mSensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager

@@ -1,6 +1,7 @@
 package org.inventivetalent.postboxapp
 
 import android.util.Log
+import androidx.annotation.RawRes
 import com.mailjet.client.ClientOptions
 import com.mailjet.client.MailjetClient
 import com.mailjet.client.MailjetRequest
@@ -10,11 +11,12 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
+import java.lang.IllegalArgumentException
 
 
 class EmailSender {
 
-    companion object{
+    companion object {
 
         suspend fun getApiKey(): String? {
             return MainActivity.instance?.dataRepository?.get("MAILJET_API_KEY")
@@ -28,9 +30,20 @@ class EmailSender {
             return MainActivity.instance?.dataRepository?.get("MAILJET_SENDER")
         }
 
+        fun sendEmail(
+            to: Map<String, String?>, subject: String,
+            @RawRes contentFile: Int, contentFormat: Map<String, Any?> = mapOf(),
+            from: String = "__config__"
+        ) {
+            var content: String? = MainActivity.instance?.resources?.openRawResource(contentFile)?.bufferedReader()
+                .use { it?.readText() }
+            contentFormat.forEach { (k, v) -> content = content?.replace("$$k", v.toString()) }
+            sendEmail(to, subject, content!!, from)
+        }
+
         fun sendEmail(to: Map<String, String?>, subject: String, content: String, from: String = "__config__") {
             GlobalScope.launch {
-                sendEmailBlocking(to,  subject, content, from)
+                sendEmailBlocking(to, subject, content, from)
             }
         }
 
@@ -52,7 +65,7 @@ class EmailSender {
                     Log.w("EmailSender", "Missing Sender email, can't send email.")
                     return
                 }
-                from =  sender
+                from = sender
             }
 
             val client: MailjetClient
@@ -71,7 +84,7 @@ class EmailSender {
                 Log.i("EmailSender", k)
                 val obj = JSONObject()
                     .put("Email", k)
-                if(v!=null) obj.put("Name", v)
+                if (v != null) obj.put("Name", v)
                 toArray.put(obj)
             }
 

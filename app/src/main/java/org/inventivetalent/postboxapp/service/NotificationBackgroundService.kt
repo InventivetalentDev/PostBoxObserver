@@ -68,7 +68,7 @@ class NotificationBackgroundService : Service() {
 
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        var date = DateFormat.format("dd-MM-yyyy hh:mm:ss", java.util.Date()).toString()
+        val date = WebServer.dateFormat()
         println("[$date] notification service start command ${System.currentTimeMillis()} ${hashCode()}")
 
         if (intent != null) {

@@ -1,10 +1,16 @@
 package org.inventivetalent.postboxapp.web
 
 import android.app.ActivityManager
+import android.content.Context
 import android.content.Context.ACTIVITY_SERVICE
+import android.net.wifi.WifiManager
+import android.provider.Settings
+import android.text.format.DateFormat
 import android.util.Log
+import android.widget.Toast
 import androidx.annotation.RawRes
 import fi.iki.elonen.NanoHTTPD
+import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.runBlocking
 import org.inventivetalent.postboxapp.BatteryInfo
 import org.inventivetalent.postboxapp.EmailSender
@@ -18,23 +24,31 @@ import org.inventivetalent.postboxapp.web.WebAuth.Companion.getUser
 import org.inventivetalent.postboxapp.web.WebAuth.Companion.sha512
 import org.inventivetalent.postboxapp.web.WebAuth.Companion.unauthorized
 import org.json.JSONObject
+import java.util.*
+import kotlin.collections.HashMap
 
 
 class WebServer(port: Int) : NanoHTTPD(port) {
 
-
     companion object {
+
+        val FULL_TIMEOUT: Long = 320000
+
+        var address: String = "0.0.0.0"
 
         fun getPostBoxInfo(): Map<String, Any?> {
             val info = HashMap<String, Any?>()
+            info["address"] = address
+            info["port"] = getPort()
             val proximity = getProximity()
             val proximityTime = getProximityTime()
             info["proximity"] = proximity
             info["proximityTime"] = proximityTime
+            info["proximityTimeFormatted"] = dateFormat(proximityTime)
             val postBoxFull = (proximity != null && proximity < 2)
             info["postBoxFull"] = postBoxFull
             val postBoxFullRecently =
-                postBoxFull && proximityTime != null && (System.currentTimeMillis() - proximityTime < 320000)
+                postBoxFull && proximityTime != null && (System.currentTimeMillis() - proximityTime < FULL_TIMEOUT)
             info["postBoxFullRecently"] = postBoxFullRecently
             val batteryInfo = getBatteryInfo()
             info["battery"] = batteryInfo.batteryPct
@@ -42,6 +56,7 @@ class WebServer(port: Int) : NanoHTTPD(port) {
             info["sensorServiceRunning"] = isServiceRunning(SensorBackgroundService::class.java)
             info["notificationServiceRunning"] =
                 isServiceRunning(NotificationBackgroundService::class.java)
+            info["deviceName"] = getDeviceName()
             return info
         }
 
@@ -59,6 +74,10 @@ class WebServer(port: Int) : NanoHTTPD(port) {
 
         fun getBatteryInfo() = BatteryInfo()
 
+        fun getDeviceName() = Settings.Secure.getString(MainActivity.instance?.contentResolver, "bluetooth_name")
+
+        fun getPort() = 8090
+
         // Based on https://stackoverflow.com/a/5921190/6257838
         fun <T> isServiceRunning(clazz: Class<T>): Boolean {
             val manager =
@@ -70,6 +89,17 @@ class WebServer(port: Int) : NanoHTTPD(port) {
             }
             return false
         }
+
+        fun dateFormat(): String {
+            return dateFormat(Date().time)
+        }
+
+        fun dateFormat(time: Long?): String = DateFormat.format("dd-MM-yyyy HH:mm:ss", time ?: 0).toString()
+
+    }
+
+    override fun start() {
+        super.start()
     }
 
     override fun serve(session: IHTTPSession?): Response {
@@ -135,7 +165,7 @@ class WebServer(port: Int) : NanoHTTPD(port) {
                 return forbidden()
             }
 
-            var format: MutableMap<String, Any?> = baseFormat(mapOf("email" to "", "name" to ""))
+            val format: MutableMap<String, Any?> = baseFormat(mapOf("email" to "", "name" to ""))
             if (params.contains("id")) {// Viewing/Updating existing user
                 val id = params["id"]?.get(0)?.toInt()
                 if (id != null) {

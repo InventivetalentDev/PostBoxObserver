@@ -56,7 +56,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         emailRepository = EmailRepository(appDatabase.emailDao())
 
 
-        val port = 8090
+        val port = WebServer.getPort()
 
         webServer = WebServer(port)
         webServer!!.start()
@@ -72,6 +72,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                 ipAddress shr 16 and 0xff,
                 ipAddress shr 24 and 0xff
             )
+            WebServer.address = ip
             val msg = "Web Interface running on $ip:$port"
             println(msg)
             webAddressText.text = getString(R.string.web_address_format, ip, port.toString())
