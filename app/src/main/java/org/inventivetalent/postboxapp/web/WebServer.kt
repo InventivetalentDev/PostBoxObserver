@@ -484,7 +484,7 @@ class WebServer(port: Int) : NanoHTTPD(port) {
     ): Response {
         var content = MainActivity.instance?.resources?.openRawResource(file)?.bufferedReader()
             .use { it?.readText() }
-        format.forEach { (k, v) -> content = content?.replace("$$k", v.toString()) }
+        format.forEach { (k, v) -> content = content?.replace("$$k$", v.toString()) }
         return newFixedLengthResponse(Response.Status.OK, mime, content)
     }
 

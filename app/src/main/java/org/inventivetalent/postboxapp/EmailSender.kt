@@ -37,7 +37,7 @@ class EmailSender {
         ) {
             var content: String? = MainActivity.instance?.resources?.openRawResource(contentFile)?.bufferedReader()
                 .use { it?.readText() }
-            contentFormat.forEach { (k, v) -> content = content?.replace("$$k", v.toString()) }
+            contentFormat.forEach { (k, v) -> content = content?.replace("$$k$", v.toString()) }
             sendEmail(to, subject, content!!, from)
         }
 

@@ -2,7 +2,7 @@
 <html>
     <head>
         <title>PostBox Dashboard</title>
-        $styles
+        $styles$
     </head>
     <body>
         <div class="container centered">
@@ -14,31 +14,31 @@
             <br/>
             <br/>
             <div class="row">
-                <h6 id="batteryText">Battery at $battery%</h6>
+                <h6 id="batteryText">Battery at $battery$%</h6>
                 <div class="progress small-progress" style="margin-bottom: 0.1rem">
-                    <div id="batteryCharge" class="determinate" style="width: $battery%"></div>
+                    <div id="batteryCharge" class="determinate" style="width: $battery$%"></div>
                 </div>
-                <span id="chargingState">Charging <strong>$charging</strong></span><br/>
+                <span id="chargingState">Charging <strong>$charging$</strong></span><br/>
             </div>
             <br/>
             <br/>
 
             <div>
-                <span>Device: $deviceName</span><br/>
+                <span>Device: $deviceName$</span><br/>
                 <br/>
                 <a href="/passwordchange">Change Password</a><br/>
-                $extraLinks
+                $extraLinks$
 
                 <br/>
                 <a href="/logout">Logout</a><br/>
             </div>
         </div>
 
-        $scripts
+        $scripts$
         <script>
-            let postBoxFull = "$postBoxFull" === "true";
-            let battery = parseInt("$battery") || 0;
-            let charging = "$charging" === "true";
+            let postBoxFull = "$postBoxFull$" === "true";
+            let battery = parseInt("$battery$") || 0;
+            let charging = "$charging$" === "true";
 
             function updateStateTexts() {
                 if (postBoxFull) {

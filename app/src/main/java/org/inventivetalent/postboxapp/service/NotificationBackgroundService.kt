@@ -117,8 +117,8 @@ class NotificationBackgroundService : Service() {
             val battery = info["battery"]
             sendEmails("There's Something in Your PostBox!\n" +
                     "\n" +
-                    "PostBox Full Since $date\n" +
-                    "Battery Charge at $battery%\n")
+                    "PostBox Full Since $date$\n" +
+                    "Battery Charge at $battery$%\n")
         }
     }
 
