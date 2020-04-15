@@ -20,4 +20,11 @@ class Email {
     @ColumnInfo
     var pass: String? = null
 
+    @ColumnInfo
+    var receiveEmails: Boolean = true
+
+    @ColumnInfo
+    var isAdmin: Boolean = false
+
+
 }

@@ -41,4 +41,8 @@ class EmailRepository(private val emailDao: EmailDao) {
         return emailDao.getByNameOrAddress(query)
     }
 
+    suspend fun nextId(): Int {
+        return emailDao.nextId()
+    }
+
 }

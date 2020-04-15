@@ -16,6 +16,7 @@ import org.inventivetalent.postboxapp.BatteryInfo
 import org.inventivetalent.postboxapp.EmailSender
 import org.inventivetalent.postboxapp.MainActivity
 import org.inventivetalent.postboxapp.R
+import org.inventivetalent.postboxapp.database.entities.Email
 import org.inventivetalent.postboxapp.service.NotificationBackgroundService
 import org.inventivetalent.postboxapp.service.SensorBackgroundService
 import org.inventivetalent.postboxapp.web.WebAuth.Companion.checkAuth
@@ -24,6 +25,7 @@ import org.inventivetalent.postboxapp.web.WebAuth.Companion.getUser
 import org.inventivetalent.postboxapp.web.WebAuth.Companion.sha512
 import org.inventivetalent.postboxapp.web.WebAuth.Companion.unauthorized
 import org.json.JSONObject
+import java.lang.IllegalStateException
 import java.util.*
 import kotlin.collections.HashMap
 
@@ -161,47 +163,146 @@ class WebServer(port: Int) : NanoHTTPD(port) {
                 return a.response()
             }
 
-            if (getUser(session) != "admin") {
-                return forbidden()
-            }
+            val loggedInUsername = getUser(session)
 
-            val format: MutableMap<String, Any?> = baseFormat(mapOf("email" to "", "name" to ""))
-            if (params.contains("id")) {// Viewing/Updating existing user
-                val id = params["id"]?.get(0)?.toInt()
-                if (id != null) {
-                    val emailEntry = runBlocking {
-                        return@runBlocking MainActivity.instance?.emailRepository?.getById(id)
-                    } ?: return notFound()
+            val format: MutableMap<String, Any?> = baseFormat(
+                mapOf(
+                    "email" to "",
+                    "name" to "",
+                    "receiveEmails" to true,
+                    "id" to -1,
+                    "extraMessage" to "",
+                    "buttonMessage" to "Update User"
+                )
+            )
+            val id = params["id"]?.get(0)?.toInt()
+            println("id: $id")
+            if (id != null && id > 0) {// Viewing/Updating existing user
+                val emailEntry = runBlocking {
+                    return@runBlocking MainActivity.instance?.emailRepository?.getById(id)
+                } ?: return notFound()
 
-                    if (method == Method.POST) {
-                        session.parseBody(null)
-                    }
-
-                    format["email"] = emailEntry.address
-                    format["name"] = emailEntry.name
-                    format["id"] = id
-                    if (method == Method.POST && params.contains("email") && params.contains("name")) {
-                        val newEmail = params["email"]?.get(0)?.toString()
-                        val newName = params["name"]?.get(0)?.toString()
-                        if (emailEntry.name == "admin" && newName != "admin") {
-                            return newFixedLengthResponse(
-                                Response.Status.BAD_REQUEST,
-                                "text/plain",
-                                "Cannot change admin username"
-                            )
-                        }
-                        emailEntry.address = newEmail
-                        emailEntry.name = newName
-                        runBlocking {
-                            MainActivity.instance?.emailRepository?.update(emailEntry)
-                        }
-                        return redirect("/useredit?id=$id")
-                    }
+                if (loggedInUsername != "admin" && emailEntry.name != loggedInUsername) {// Allow edits on own account & by admin on all
+                    return forbidden()
                 }
-            } else {
-                //TODO: new user
+
+                if (method == Method.POST) {
+                    session.parseBody(null)
+                }
+
+                format["email"] = emailEntry.address
+                format["name"] = emailEntry.name
+                format["receiveEmails"] = emailEntry.receiveEmails
+                format["id"] = id
+                format["buttonMessage"] = if(emailEntry.name != loggedInUsername) "Update User" else "Update Your Info"
+                if (method == Method.POST && params.contains("email") && params.contains("name") && params.contains("receiveEmails")) {
+                    val newEmail = params["email"]?.get(0)?.toString()
+                    val newName = params["name"]?.get(0)?.toString()
+                    val newReceiveEmails =  params["receiveEmails"]?.get(0)?.toBoolean()
+                    if (emailEntry.name == "admin" && newName != "admin") {
+                        return newFixedLengthResponse(
+                            Response.Status.BAD_REQUEST,
+                            "text/plain",
+                            "Cannot change admin username"
+                        )
+                    }
+                    emailEntry.address = newEmail
+                    emailEntry.name = newName
+                    emailEntry.receiveEmails = newReceiveEmails ?: true
+                    runBlocking {
+                        MainActivity.instance?.emailRepository?.update(emailEntry)
+                    }
+                    return redirect("/useredit?id=$id")
+                }
+            } else {// Creating new user
+                if (loggedInUsername != "admin") {
+                    return forbidden()
+                }
+
+                if (method == Method.POST) {
+                    session.parseBody(null)
+                }
+
+                format["buttonMessage"] = "Add New User"
+                if (method == Method.POST && params.contains("email") && params.contains("name") && params.contains("receiveEmails")) {
+                    val newEmail = params["email"]?.get(0)?.toString()
+                    val newName = params["name"]?.get(0)?.toString()
+                    val newReceiveEmails = params["receiveEmails"]?.get(0)?.toBoolean()
+                    if (newName == null || newName.length < 2) {
+                        return newFixedLengthResponse(
+                            Response.Status.BAD_REQUEST,
+                            "text/plain",
+                            "Please choose a longer name"
+                        )
+                    }
+                    if (newEmail == null || newEmail.length < 2 || !newEmail.contains("@")) {
+                        return newFixedLengthResponse(
+                            Response.Status.BAD_REQUEST,
+                            "text/plain",
+                            "Please provide a valid email address"
+                        )
+                    }
+
+                    if (newName == "admin") {
+                        return newFixedLengthResponse(
+                            Response.Status.BAD_REQUEST,
+                            "text/plain",
+                            "Cannot create another admin account"
+                        )
+                    }
+
+                    val existingNameEntry = runBlocking {
+                        return@runBlocking MainActivity.instance?.emailRepository?.getByName(newName)
+                    }
+                    if (existingNameEntry != null) {
+                        return newFixedLengthResponse(
+                            Response.Status.BAD_REQUEST,
+                            "text/plain",
+                            "Please choose a different name"
+                        )
+                    }
+                    val existingMailEntry = runBlocking {
+                        return@runBlocking MainActivity.instance?.emailRepository?.getByAddress(newEmail)
+                    }
+                    if (existingMailEntry != null) {
+                        return newFixedLengthResponse(
+                            Response.Status.BAD_REQUEST,
+                            "text/plain",
+                            "Please use a different email address"
+                        )
+                    }
+
+                    Log.i("WebServer","Adding new user $newName ($newEmail)")
+
+                    val newId = runBlocking {
+                        return@runBlocking MainActivity.instance?.emailRepository?.nextId()
+                    } ?: throw IllegalStateException("no next id for user")
+                    val newEntry = Email()
+                    newEntry.receiveEmails = newReceiveEmails ?: true
+                    newEntry.isAdmin = false
+                    newEntry.name = newName
+                    newEntry.address = newEmail
+                    newEntry.id = newId
+                    val pass = randomString(8)
+                    newEntry.pass = sha512(pass)
+
+                    runBlocking {
+                        MainActivity.instance?.emailRepository?.insert(newEntry)
+                    }
+
+                    format["email"] = newEntry.address
+                    format["name"] = newEntry.name
+                    format["receiveEmails"] = newEntry.receiveEmails
+                    format["receive_emails"] = if(newEntry.receiveEmails) "checked" else ""
+                    format["id"] = newEntry.id
+                    format["extraMessage"] = "User created.<br/>" +
+                            "New Password for $newName is <code>$pass</code><br/>" +
+                            "Make sure to change it!"
+                    return fileResponse(R.raw.useredit, format)
+                }
+                return fileResponse(R.raw.useredit, format)
             }
-            return fileResponse(org.inventivetalent.postboxapp.R.raw.useredit, format)
+            return fileResponse(R.raw.useredit, format)
         }
 
         if ("/passwordchange" == uri) {
@@ -243,6 +344,10 @@ class WebServer(port: Int) : NanoHTTPD(port) {
             val a = checkAuth(session)
             if (a != WebAuth.AuthStatus.OK) {
                 return a.response()
+            }
+
+            if (getUser(session) != "admin") {
+                return forbidden()
             }
 
             if (method == Method.POST) {
@@ -369,6 +474,15 @@ class WebServer(port: Int) : NanoHTTPD(port) {
 
     fun notFound(msg: String = "Not Found"): Response {
         return newFixedLengthResponse(Response.Status.NOT_FOUND, "text/plain", msg)
+    }
+
+    // https://www.baeldung.com/kotlin-random-alphanumeric-string
+    fun randomString(len: Int): String {
+        val charPool: List<Char> = ('a'..'z') + ('A'..'Z') + ('0'..'9')
+        return (1..len)
+            .map { kotlin.random.Random.nextInt(0, charPool.size) }
+            .map(charPool::get)
+            .joinToString("")
     }
 
 

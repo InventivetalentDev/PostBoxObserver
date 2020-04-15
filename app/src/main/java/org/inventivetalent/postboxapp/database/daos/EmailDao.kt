@@ -38,4 +38,7 @@ interface EmailDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertUpsert(vararg emails: Email)
 
+    @Query("SELECT MAX(id)+1 FROM emails")
+    fun nextId(): Int
+
 }

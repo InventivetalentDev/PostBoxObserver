@@ -5,25 +5,27 @@
         $styles
     </head>
     <body>
-        <form method="post">
-            <div>
-                <label>Email Sender
-                <input type="email" name="emailsender" value="$emailsender"></label><br/>
-                <span>This has to be a real email address which is verified on MailJet. (Can also be the email you used to register there)</span>
-            </div>
-            <br/>
-            <div>
-                <label>MailJet API Key
-                    <input type="text" name="mailjetkey" value="$mailjetkey"></label><br/>
-                <span>You can create a free API key <a href="https://www.mailjet.com/" target="_blank">here</a></span>
-            </div>
-            <div>
-                <label>MailJet API Secret
-                    <input type="text" name="mailjetsecret" value="$mailjetsecret"></label>
-            </div>
+        <div class="container">
+            <form method="post">
+                <div>
+                    <label>Email Sender
+                        <input type="email" name="emailsender" value="$emailsender"></label><br/>
+                    <span>This has to be a real email address which is verified on MailJet. (Can also be the email you used to register there)</span>
+                </div>
+                <br/>
+                <div>
+                    <label>MailJet API Key
+                        <input type="text" name="mailjetkey" value="$mailjetkey"></label><br/>
+                    <span>You can create a free API key <a href="https://www.mailjet.com/" target="_blank">here</a></span>
+                </div>
+                <div>
+                    <label>MailJet API Secret
+                        <input type="text" name="mailjetsecret" value="$mailjetsecret"></label>
+                </div>
 
-            <br/>
-            <input type="submit" value="Update Settings">
-        </form>
+                <br/>
+                <input type="submit" value="Update Settings">
+            </form>
+        </div>
     </body>
 </html>

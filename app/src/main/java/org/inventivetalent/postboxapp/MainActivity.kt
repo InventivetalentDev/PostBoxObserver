@@ -82,16 +82,6 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         }
 
         try {
-            val sizeObserver = Observer<Int> { s ->
-                run {
-                    println("Emails database size changed: $s")
-                    if (s == 0) {
-                        createAdminAccount()
-                    }
-                }
-            }
-            emailRepository?.size?.observe(this, sizeObserver)
-
             GlobalScope.launch {
                 val s = appDatabase.emailDao().getSize()
                 println("Emails database size: $s")
@@ -99,6 +89,15 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                     createAdminAccount()
                 }
             }
+//            val sizeObserver = Observer<Int> { s ->
+//                run {
+//                    println("Emails database size changed: $s")
+//                    if (s == 0) {
+//                        createAdminAccount()
+//                    }
+//                }
+//            }
+//            emailRepository?.size?.observe(this, sizeObserver)
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -144,6 +143,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         email.name = "admin"
         email.address = "admin@post.box"
         email.pass = WebAuth.sha512("admin")
+        email.isAdmin = true
         GlobalScope.launch {
             emailRepository?.insert(email)
             Log.i(TAG, "New admin account (admin:admin) created.")
