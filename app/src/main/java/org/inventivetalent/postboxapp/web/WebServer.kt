@@ -133,7 +133,7 @@ class WebServer(port: Int) : NanoHTTPD(port) {
                 return forbidden()
             }
 
-            var format: MutableMap<String, Any?> = mutableMapOf("email" to "", "name" to "")
+            var format: MutableMap<String, Any?> = baseFormat(mapOf("email" to "", "name" to ""))
             if (params.contains("id")) {// Viewing/Updating existing user
                 val id = params["id"]?.get(0)?.toInt()
                 if (id != null) {
@@ -234,7 +234,7 @@ class WebServer(port: Int) : NanoHTTPD(port) {
                 return redirect("/settings")
             }
 
-            val format: MutableMap<String, Any?> = HashMap<String, Any?>()
+            val format = baseFormat()
             val apiKey = runBlocking {
                 return@runBlocking EmailSender.getApiKey()
             }
@@ -285,7 +285,12 @@ class WebServer(port: Int) : NanoHTTPD(port) {
         return super.serve(session)
     }
 
-
+    fun baseFormat(def: Map<String, Any?> = HashMap()): MutableMap<String, Any?> {
+        val map =  HashMap(def)
+        map["styles"] = ""
+        map["scripts"] = ""
+        return map
+    }
 
 
 
