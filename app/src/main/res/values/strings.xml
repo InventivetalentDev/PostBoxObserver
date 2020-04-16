@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">PostBoxApp</string>
+    <string name="app_name">PostBoxObserver</string>
     <string name="web_address_title">Web Interface Running On</string>
     <string name="web_address_format">%s:%s</string>
 </resources>
