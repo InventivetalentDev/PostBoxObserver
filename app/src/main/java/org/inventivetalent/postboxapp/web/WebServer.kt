@@ -441,8 +441,9 @@ class WebServer(port: Int) : NanoHTTPD(port) {
                 return a.response()
             }
 
+            val loggedInUsername = getUser(session)
             val emailEntry = runBlocking {
-                return@runBlocking MainActivity.instance?.emailRepository?.getByName("admin")
+                return@runBlocking MainActivity.instance?.emailRepository?.getByName(loggedInUsername!!)
             } ?: return notFound()
 
             EmailSender.sendEmail(
