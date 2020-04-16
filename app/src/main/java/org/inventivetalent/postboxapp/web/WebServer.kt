@@ -181,6 +181,12 @@ class WebServer(port: Int) : NanoHTTPD(port) {
                 }
             }
 
+            if (loggedInUsername == "admin") {
+                content += "<br/><div>" +
+                        "<a href='/useredit'>Add New User</a>" +
+                        "</div>"
+            }
+
             content += "</body>"
             return newFixedLengthResponse(content)
         }
