@@ -42,21 +42,13 @@ class NotificationBackgroundService : Service() {
             val args = Bundle()
             notificationService.putExtras(args)
             val scheduledIntent: PendingIntent
-            scheduledIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                PendingIntent.getForegroundService(
-                    appContext,
-                    0,
-                    notificationService,
-                    PendingIntent.FLAG_UPDATE_CURRENT
-                )
-            } else {
+            scheduledIntent =
                 PendingIntent.getService(
                     appContext,
                     0,
                     notificationService,
                     PendingIntent.FLAG_UPDATE_CURRENT
                 )
-            }
             (appContext.getSystemService(Context.ALARM_SERVICE) as AlarmManager).setInexactRepeating(
                 AlarmManager.RTC_WAKEUP,
                 0,
@@ -139,9 +131,6 @@ class NotificationBackgroundService : Service() {
         super.onCreate()
 
         println("notification service onCreate")
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForeground(0, notification)
-        }
     }
 
     override fun onDestroy() {

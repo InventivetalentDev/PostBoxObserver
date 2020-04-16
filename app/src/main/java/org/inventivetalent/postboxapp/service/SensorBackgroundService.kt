@@ -124,9 +124,6 @@ class SensorBackgroundService : Service(), SensorEventListener {
         super.onCreate()
 
         println("sensor service onCreate")
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForeground(0, notification)
-        }
     }
 
     override fun onDestroy() {
