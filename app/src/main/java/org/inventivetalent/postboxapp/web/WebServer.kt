@@ -24,6 +24,7 @@ import org.inventivetalent.postboxapp.web.WebAuth.Companion.getUser
 import org.inventivetalent.postboxapp.web.WebAuth.Companion.sha512
 import org.inventivetalent.postboxapp.web.WebAuth.Companion.unauthorized
 import org.json.JSONObject
+import java.lang.Exception
 import java.lang.RuntimeException
 import java.util.*
 import kotlin.collections.HashMap
@@ -79,13 +80,17 @@ class WebServer(port: Int) : NanoHTTPD(port) {
         fun getBatteryInfo() = BatteryInfo()
 
         fun getDeviceName(): String {
-            // https://medium.com/capital-one-tech/how-to-get-an-android-device-nickname-d5eab12f4ced
-            val bluetoothName = Settings.Secure.getString(MainActivity.instance?.contentResolver, "bluetooth_name")
-            if (bluetoothName != null) return bluetoothName
-            val deviceName = Settings.Secure.getString(MainActivity.instance?.contentResolver, "device_name")
-            if (deviceName != null) return deviceName
-            val lockScreenName = Settings.Secure.getString(MainActivity.instance?.contentResolver, "lock_screen_owner_info")
-            if (lockScreenName != null) return lockScreenName
+            try {
+                // https://medium.com/capital-one-tech/how-to-get-an-android-device-nickname-d5eab12f4ced
+                val bluetoothName = Settings.Secure.getString(MainActivity.instance?.contentResolver, "bluetooth_name")
+                if (bluetoothName != null) return bluetoothName
+                val deviceName = Settings.Secure.getString(MainActivity.instance?.contentResolver, "device_name")
+                if (deviceName != null) return deviceName
+                val lockScreenName = Settings.Secure.getString(MainActivity.instance?.contentResolver, "lock_screen_owner_info")
+                if (lockScreenName != null) return lockScreenName
+            } catch (e: Exception) {
+                Log.w("WebServer", "Failed to look up device name", e)
+            }
             return Build.MODEL
         }
 
@@ -95,9 +100,11 @@ class WebServer(port: Int) : NanoHTTPD(port) {
         fun <T> isServiceRunning(clazz: Class<T>): Boolean {
             val manager =
                 MainActivity.instance?.getSystemService(ACTIVITY_SERVICE) as ActivityManager?
-            for (service in manager!!.getRunningServices(Integer.MAX_VALUE)) {
-                if (clazz.name == service.service.className) {
-                    return true
+            if (manager != null) {
+                for (service in manager.getRunningServices(Integer.MAX_VALUE)) {
+                    if (clazz.name == service.service.className) {
+                        return true
+                    }
                 }
             }
             return false
