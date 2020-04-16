@@ -37,7 +37,7 @@ class WebServer(port: Int) : NanoHTTPD(port) {
 
         var address: String = "0.0.0.0"
 
-        fun getPostBoxInfo(): Map<String, Any?> {
+        fun getPostBoxInfo(): MutableMap<String, Any?> {
             val info = HashMap<String, Any?>()
             info["address"] = address
             info["port"] = getPort()
@@ -152,6 +152,7 @@ class WebServer(port: Int) : NanoHTTPD(port) {
                 return a.response()
             }
             val format = baseFormat(getPostBoxInfo())
+            format["username"] = getUser(session)
             if (getUser(session) == "admin") {
                 format["extraLinks"] = "<a href=\"/users\">Manage Users</a><br/>\n" +
                         "<a href=\"/settings\">System Settings</a><br/>"
@@ -442,7 +443,9 @@ class WebServer(port: Int) : NanoHTTPD(port) {
                 return a.response()
             }
 
-            val json = JSONObject(getPostBoxInfo())
+            val info = getPostBoxInfo()
+            info["username"] = getUser(session)
+            val json = JSONObject(info)
             val response = newFixedLengthResponse(json.toString())
             response.mimeType = "application/json"
             return response
