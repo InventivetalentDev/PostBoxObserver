@@ -1,17 +1,15 @@
 package org.inventivetalent.postboxapp.web
 
 import android.app.ActivityManager
-import android.content.Context
 import android.content.Context.ACTIVITY_SERVICE
-import android.net.wifi.WifiManager
+import android.content.pm.PackageInfo
+import android.content.pm.PackageManager
 import android.os.Build
 import android.provider.Settings
 import android.text.format.DateFormat
 import android.util.Log
-import android.widget.Toast
 import androidx.annotation.RawRes
 import fi.iki.elonen.NanoHTTPD
-import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.runBlocking
 import org.inventivetalent.postboxapp.BatteryInfo
 import org.inventivetalent.postboxapp.EmailSender
@@ -26,7 +24,7 @@ import org.inventivetalent.postboxapp.web.WebAuth.Companion.getUser
 import org.inventivetalent.postboxapp.web.WebAuth.Companion.sha512
 import org.inventivetalent.postboxapp.web.WebAuth.Companion.unauthorized
 import org.json.JSONObject
-import java.lang.IllegalStateException
+import java.lang.RuntimeException
 import java.util.*
 import kotlin.collections.HashMap
 
@@ -60,6 +58,9 @@ class WebServer(port: Int) : NanoHTTPD(port) {
             info["notificationServiceRunning"] =
                 isServiceRunning(NotificationBackgroundService::class.java)
             info["deviceName"] = getDeviceName()
+            val packageInfo = getPackageInfo()
+            info["appVersion"] = packageInfo.versionName
+            info["appVersionCode"] = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) packageInfo.longVersionCode else packageInfo.versionCode
             return info
         }
 
@@ -77,14 +78,14 @@ class WebServer(port: Int) : NanoHTTPD(port) {
 
         fun getBatteryInfo() = BatteryInfo()
 
-        fun getDeviceName():String {
+        fun getDeviceName(): String {
             // https://medium.com/capital-one-tech/how-to-get-an-android-device-nickname-d5eab12f4ced
             val bluetoothName = Settings.Secure.getString(MainActivity.instance?.contentResolver, "bluetooth_name")
-            if(bluetoothName!=null)return bluetoothName
+            if (bluetoothName != null) return bluetoothName
             val deviceName = Settings.Secure.getString(MainActivity.instance?.contentResolver, "device_name")
-            if(deviceName!=null)return deviceName
+            if (deviceName != null) return deviceName
             val lockScreenName = Settings.Secure.getString(MainActivity.instance?.contentResolver, "lock_screen_owner_info")
-            if(lockScreenName!=null)return lockScreenName
+            if (lockScreenName != null) return lockScreenName
             return Build.MODEL
         }
 
@@ -100,6 +101,14 @@ class WebServer(port: Int) : NanoHTTPD(port) {
                 }
             }
             return false
+        }
+
+        fun getPackageInfo(): PackageInfo {
+            try {
+                return MainActivity.instance?.packageManager?.getPackageInfo(MainActivity.instance?.packageName!!, 0)!!
+            } catch (e: PackageManager.NameNotFoundException) {
+                throw RuntimeException(e)// shouldn't be possible to get here
+            }
         }
 
         fun dateFormat(): String {
@@ -128,7 +137,11 @@ class WebServer(port: Int) : NanoHTTPD(port) {
             return fileResponse(R.raw.index, baseFormat())
         }
         if ("/logout" == uri) {
-            return if (session.headers.contains("authorization")) unauthorized(false, "<html><head><script>location.reload();</script></head></html>", mime = "text/html") else redirect(
+            return if (session.headers.contains("authorization")) unauthorized(
+                false,
+                "<html><head><script>location.reload();</script></head></html>",
+                mime = "text/html"
+            ) else redirect(
                 "/"
             )
         }
@@ -139,10 +152,10 @@ class WebServer(port: Int) : NanoHTTPD(port) {
                 return a.response()
             }
             val format = baseFormat(getPostBoxInfo())
-            if(getUser(session)=="admin") {
+            if (getUser(session) == "admin") {
                 format["extraLinks"] = "<a href=\"/users\">Manage Users</a><br/>\n" +
                         "<a href=\"/settings\">System Settings</a><br/>"
-            }else{
+            } else {
                 format["extraLinks"] = ""
             }
             return fileResponse(R.raw.dashboard, format)
@@ -176,7 +189,7 @@ class WebServer(port: Int) : NanoHTTPD(port) {
             val loggedInUsername = getUser(session)
 
             emails?.forEach {
-                if(it.name == loggedInUsername || loggedInUsername == "admin") {
+                if (it.name == loggedInUsername || loggedInUsername == "admin") {
                     content += "<div>" +
                             "<a href='/useredit?id=${it.id}'>${it.name}</a>" +
                             "</div>"
@@ -229,11 +242,11 @@ class WebServer(port: Int) : NanoHTTPD(port) {
                 format["name"] = emailEntry.name
                 format["receiveEmails"] = emailEntry.receiveEmails
                 format["id"] = id
-                format["buttonMessage"] = if(emailEntry.name != loggedInUsername) "Update User" else "Update Your Info"
+                format["buttonMessage"] = if (emailEntry.name != loggedInUsername) "Update User" else "Update Your Info"
                 if (method == Method.POST && params.contains("email") && params.contains("name") && params.contains("receiveEmails")) {
                     val newEmail = params["email"]?.get(0)?.toString()
                     val newName = params["name"]?.get(0)?.toString()
-                    val newReceiveEmails =  params["receiveEmails"]?.get(0)?.toBoolean()
+                    val newReceiveEmails = params["receiveEmails"]?.get(0)?.toBoolean()
                     if (emailEntry.name == "admin" && newName != "admin") {
                         return newFixedLengthResponse(
                             Response.Status.BAD_REQUEST,
@@ -307,7 +320,7 @@ class WebServer(port: Int) : NanoHTTPD(port) {
                         )
                     }
 
-                    Log.i("WebServer","Adding new user $newName ($newEmail)")
+                    Log.i("WebServer", "Adding new user $newName ($newEmail)")
 
                     val newId = runBlocking {
                         return@runBlocking MainActivity.instance?.emailRepository?.nextId()
@@ -328,7 +341,7 @@ class WebServer(port: Int) : NanoHTTPD(port) {
                     format["email"] = newEntry.address
                     format["name"] = newEntry.name
                     format["receiveEmails"] = newEntry.receiveEmails
-                    format["receive_emails"] = if(newEntry.receiveEmails) "checked" else ""
+                    format["receive_emails"] = if (newEntry.receiveEmails) "checked" else ""
                     format["id"] = newEntry.id
                     format["extraMessage"] = "User created.<br/>" +
                             "New Password for $newName is <code>$pass</code><br/>" +

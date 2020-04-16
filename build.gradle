@@ -24,6 +24,12 @@ allprojects {
     }
 }
 
+ext {
+    appVersionId = "3000001"
+    appVersionName = "0.0.1"
+}
+
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
+
