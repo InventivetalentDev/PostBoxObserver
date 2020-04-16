@@ -116,22 +116,22 @@ class WebAuth {
             return sb.toString()
         }
 
-        fun unauthorized(presentRealm: Boolean = true): NanoHTTPD.Response {
+        fun unauthorized(presentRealm: Boolean = true, content: String = "Unauthorized", mime: String = "text/plain"): NanoHTTPD.Response {
             val response = NanoHTTPD.newFixedLengthResponse(
                 NanoHTTPD.Response.Status.UNAUTHORIZED,
-                "text/plain",
-                "Unauthorized"
+                mime,
+                content
             )
             if (presentRealm)
                 response.addHeader("WWW-Authenticate", "Basic realm=\"PostBox Admin\"")
             return response
         }
 
-        fun forbidden(): NanoHTTPD.Response {
+        fun forbidden(content: String = "Forbidden", mime: String = "text/plain"): NanoHTTPD.Response {
             val response = NanoHTTPD.newFixedLengthResponse(
                 NanoHTTPD.Response.Status.FORBIDDEN,
-                "text/plain",
-                "Forbidden"
+                mime,
+                content
             )
             return response
         }

@@ -128,7 +128,7 @@ class WebServer(port: Int) : NanoHTTPD(port) {
             return fileResponse(R.raw.index, baseFormat())
         }
         if ("/logout" == uri) {
-            return if (session.headers.contains("authorization")) unauthorized(false) else redirect(
+            return if (session.headers.contains("authorization")) unauthorized(false, "<html><head><script>location.reload();</script></head></html>", mime = "text/html") else redirect(
                 "/"
             )
         }
