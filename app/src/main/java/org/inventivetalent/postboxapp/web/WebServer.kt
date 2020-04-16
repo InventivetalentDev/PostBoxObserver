@@ -169,7 +169,9 @@ class WebServer(port: Int) : NanoHTTPD(port) {
                     "<head>" +
                     "<title>Users</title>" +
                     "</head>" +
-                    "<body>"
+                    "<body>" +
+                    "<a href=\"/dashboard\"><b>&lt;-</b></a>\n" +
+                    "<br/>"
 
             val loggedInUsername = getUser(session)
 
