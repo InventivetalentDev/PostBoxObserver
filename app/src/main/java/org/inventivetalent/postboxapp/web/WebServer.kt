@@ -245,7 +245,7 @@ class WebServer(port: Int) : NanoHTTPD(port) {
                     runBlocking {
                         MainActivity.instance?.emailRepository?.update(emailEntry)
                     }
-                    return redirect("/useredit?id=$id")
+                    return redirect("/useredit?id=$id#updated")
                 }
             } else {// Creating new user
                 if (loggedInUsername != "admin") {
@@ -401,7 +401,7 @@ class WebServer(port: Int) : NanoHTTPD(port) {
                         MainActivity.instance?.setData("MAILJET_SENDER", emailsender)
                     }
                 }
-                return redirect("/settings")
+                return redirect("/settings#updated")
             }
 
             val format = baseFormat()
