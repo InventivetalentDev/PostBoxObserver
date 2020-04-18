@@ -498,9 +498,9 @@ class WebServer(port: Int) : NanoHTTPD(port) {
                     "<link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css\">\n" +
                     "<link rel=\"stylesheet\" href=\"style.css\">" +
                     "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
-        map["scripts"] = ""
-        "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js\"></script>" +
-                return map
+        map["scripts"] = "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js\"></script>"
+        map["time"] = System.currentTimeMillis()
+        return map
     }
 
 
