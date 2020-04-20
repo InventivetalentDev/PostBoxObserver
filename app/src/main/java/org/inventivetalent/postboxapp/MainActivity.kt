@@ -109,6 +109,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         launchReceiver(SensorBroadcastReceiver::class.java)
         launchReceiver(NotificationBroadcastReceiver::class.java)
 
+        setData("startTime", System.currentTimeMillis().toString())
 
         if (intent.getBooleanExtra("crash", false)) {
             Toast.makeText(this, "App restarted after crash", Toast.LENGTH_SHORT).show();
