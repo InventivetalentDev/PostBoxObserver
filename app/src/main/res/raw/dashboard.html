@@ -10,6 +10,7 @@
             <br/>
             <div class="row">
                 <h5 id="postBoxStateText">Checking Postbox...</h5>
+                <span id="postBoxTime"></span>
             </div>
             <br/>
             <br/>
@@ -39,14 +40,17 @@
         $scripts$
         <script>
             let postBoxFull = "$postBoxFull$" === "true";
+            let postBoxTime = "$proximityTimeFormatted$";
             let battery = parseInt("$battery$") || 0;
             let charging = "$charging$" === "true";
 
             function updateStateTexts() {
                 if (postBoxFull) {
                     document.getElementById("postBoxStateText").innerHTML = "<b>There's something in your PostBox!</b>";
+                    document.getElementById("postBoxTime").innerHTML = "since " + postBoxTime;
                 }else{
                     document.getElementById("postBoxStateText").innerHTML = "PostBox is empty.";
+                    document.getElementById("postBoxTime").innerHTML = "";
                 }
 
                 if (charging) {
