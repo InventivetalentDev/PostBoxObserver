@@ -102,7 +102,7 @@ class EmailSender {
                                     Emailv31.Message.TO, toArray
                                 )
                                 .put(Emailv31.Message.SUBJECT, subject)
-                                .put(Emailv31.Message.TEXTPART, content)
+                                .put(Emailv31.Message.HTMLPART, content)
                         )
                 )
             response = client.post(request)
