@@ -55,9 +55,18 @@ class WebServer(port: Int) : NanoHTTPD(port) {
             val batteryInfo = getBatteryInfo()
             info["battery"] = batteryInfo.batteryPct
             info["charging"] = batteryInfo.isCharging
+            val sensorStart = getSensorStartTime()
             info["sensorServiceRunning"] = isServiceRunning(SensorBackgroundService::class.java)
+            val notificationStart = getNotificationStartTime()
+            info["sensorServiceStart"] = sensorStart
+            info["sensorServiceStartFormatted"] = dateFormat(sensorStart)
             info["notificationServiceRunning"] =
                 isServiceRunning(NotificationBackgroundService::class.java)
+            info["notificationServiceStart"] = notificationStart
+            info["notificationServiceStartFormatted"] = dateFormat(notificationStart)
+            val appStart = getAppStartTime()
+            info["appStart"] = appStart
+            info["appStartFormatted"] = dateFormat(appStart)
             info["deviceName"] = getDeviceName()
             val packageInfo = getPackageInfo()
             info["appVersion"] = packageInfo.versionName
@@ -74,6 +83,24 @@ class WebServer(port: Int) : NanoHTTPD(port) {
         fun getProximityTime(): Long? {
             return runBlocking {
                 return@runBlocking MainActivity.instance?.dataRepository?.get("proximityTime")
+            }?.toLongOrNull()
+        }
+
+        fun getSensorStartTime(): Long? {
+            return runBlocking {
+                return@runBlocking MainActivity.instance?.dataRepository?.get("sensorServiceStart")
+            }?.toLongOrNull()
+        }
+
+        fun getNotificationStartTime(): Long? {
+            return runBlocking {
+                return@runBlocking MainActivity.instance?.dataRepository?.get("notificationServiceStart")
+            }?.toLongOrNull()
+        }
+
+        fun getAppStartTime(): Long? {
+            return runBlocking {
+                return@runBlocking MainActivity.instance?.dataRepository?.get("startTime")
             }?.toLongOrNull()
         }
 
