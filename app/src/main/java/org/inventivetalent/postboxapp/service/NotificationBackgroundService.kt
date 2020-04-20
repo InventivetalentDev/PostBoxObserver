@@ -69,6 +69,8 @@ class NotificationBackgroundService : Service() {
             }
         }
 
+        MainActivity.instance?.setData("notificationServiceStart", System.currentTimeMillis().toString())
+
         Log.i("NotificationService", "Checking PostBox...")
         GlobalScope.launch {
             doPostBoxCheck()

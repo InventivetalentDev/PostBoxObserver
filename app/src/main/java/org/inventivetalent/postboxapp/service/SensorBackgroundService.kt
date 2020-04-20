@@ -91,6 +91,8 @@ class SensorBackgroundService : Service(), SensorEventListener {
             }
         }
 
+        MainActivity.instance?.setData("sensorServiceStart", System.currentTimeMillis().toString())
+
         val sensor = mSensorManager!!.getDefaultSensor(sensorType)
         mSensorManager!!.registerListener(this, sensor, SensorManager.SENSOR_DELAY_FASTEST)
 
