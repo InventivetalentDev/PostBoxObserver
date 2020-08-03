@@ -11,6 +11,7 @@ import android.os.Bundle
 import android.os.IBinder
 import android.text.format.DateFormat
 import android.util.Log
+import androidx.annotation.RawRes
 import androidx.core.app.NotificationCompat
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -30,8 +31,8 @@ class NotificationBackgroundService : Service() {
     companion object {
         val INTERVAL:Long = 5*60000
 
-         var notification:Notification? =null
-
+        var notification:Notification? =null
+        var lastBatteryPct: Float = 0F;
 
         fun start(appContext: Context) {
             println("notification service start")
@@ -104,14 +105,23 @@ class NotificationBackgroundService : Service() {
         if (!postBoxFull) {
             Log.i("NotificationService", "PostBox is empty")
         }
+        val battery = info["battery"] as Float;
         if (info["postBoxFullRecently"] as Boolean) {
             Log.i("NotificationService", "PostBox is newly full!")
 
             sendEmails(info)
+        } else if(battery < 10 && battery < lastBatteryPct) {
+            Log.i("NotificationService", "Sending low battery warning email")
+            sendEmails(info, R.raw.battery_email)
         }
+        lastBatteryPct = battery
     }
 
     suspend fun sendEmails(format: Map<String, Any?>) {
+        sendEmails(format, R.raw.notification_email)
+    }
+
+    suspend fun sendEmails(format: Map<String, Any?>, @RawRes contentFile: Int) {
         val emailEntries = MainActivity.instance?.emailRepository?.getAll()
         val toMap = HashMap<String, String?>()
         emailEntries?.forEach {
@@ -120,7 +130,7 @@ class NotificationBackgroundService : Service() {
             }
         }
         if (toMap.size > 0) {
-            EmailSender.sendEmail(toMap, "You've got Mail!", R.raw.notification_email, format)
+            EmailSender.sendEmail(toMap, "You've got Mail!", contentFile, format)
         }
     }
 

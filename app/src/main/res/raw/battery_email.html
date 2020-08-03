@@ -1,0 +1,53 @@
+<!-- Design based on https://webdesign.tutsplus.com/articles/build-an-html-email-template-from-scratch--webdesign-12770 -->
+<!DOCTYPE html>
+<htmwl>
+    <head>
+        <title>Battery Low | PostBox</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    </head>
+    <body style="margin: 0; padding: 0;">
+        <table border="0" cellpadding="0" cellspacing="0" width="100%">
+            <tr>
+                <td style="padding: 10px 0 30px 0;">
+                    <table align="center" border="0" cellpadding="0" cellspacing="0" width="600" style="border: 1px solid #858585; border-collapse: collapse;">
+                        <tr>
+                            <td align="center" style="padding: 40px 0 30px 0; font-size: 28px; font-weight: bold; font-family: Arial, sans-serif;">
+                                <img src="https://res.cloudinary.com/inventivetalent/image/upload/brand/postbox/eye_letter-x256.png" alt="Creating Email Magic" width="256" height="256" style="display: block;" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 40px 30px 40px 30px;">
+                                <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                    <tr>
+                                        <td style="font-family: Arial, sans-serif; font-size: 24px;">
+                                            <b>PostBox phone battery is low</b>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 20px 0 30px 0; font-family: Arial, sans-serif; font-size: 16px; line-height: 20px;">
+                                            The Phone's Battery is currently at $battery$%.<br/>
+                                            <br/>
+                                            <br/>
+                                            <a href="http://$address$:$port$/dashboard">Go To Dashboard</a>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 30px 30px 30px 30px;">
+                                <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                    <tr>
+                                        <td style="font-family: Arial, sans-serif; font-size: 14px;" width="75%">
+                                            You can disable these notification emails in <a href="http://$address$:$port$/mysettings">your settings</a>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </body>
+</htmwl>
