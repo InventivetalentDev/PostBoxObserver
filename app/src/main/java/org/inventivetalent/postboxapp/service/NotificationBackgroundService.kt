@@ -111,7 +111,7 @@ class NotificationBackgroundService : Service() {
 
             sendEmails(info)
         } else if(battery < 10 && battery < lastBatteryPct) {
-            Log.i("NotificationService", "Sending low battery warning email")
+            Log.i("NotificationService", "Sending low battery warning email ($lastBatteryPct->$battery)")
             sendEmails(info, R.raw.battery_email)
         }
         lastBatteryPct = battery
