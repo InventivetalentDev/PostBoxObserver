@@ -112,7 +112,7 @@ class NotificationBackgroundService : Service() {
             sendEmails(info)
         } else if(battery < 10 && battery < lastBatteryPct) {
             Log.i("NotificationService", "Sending low battery warning email ($lastBatteryPct->$battery)")
-            sendEmails(info, R.raw.battery_email)
+            sendEmails(info, R.raw.battery_email, "PostBox battery low!")
         }
         lastBatteryPct = battery
     }
@@ -121,7 +121,7 @@ class NotificationBackgroundService : Service() {
         sendEmails(format, R.raw.notification_email)
     }
 
-    suspend fun sendEmails(format: Map<String, Any?>, @RawRes contentFile: Int) {
+    suspend fun sendEmails(format: Map<String, Any?>, @RawRes contentFile: Int, subject: String = "You've got Mail!") {
         val emailEntries = MainActivity.instance?.emailRepository?.getAll()
         val toMap = HashMap<String, String?>()
         emailEntries?.forEach {
@@ -130,7 +130,7 @@ class NotificationBackgroundService : Service() {
             }
         }
         if (toMap.size > 0) {
-            EmailSender.sendEmail(toMap, "You've got Mail!", contentFile, format)
+            EmailSender.sendEmail(toMap, subject, contentFile, format)
         }
     }
 
